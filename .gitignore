@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.png
+*.bin
+.DS_Store
+.streamlit/
