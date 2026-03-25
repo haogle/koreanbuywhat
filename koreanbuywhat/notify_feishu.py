@@ -9,6 +9,7 @@ import requests
 from pathlib import Path
 from main import fetch_week, last_week_range
 from poster import build_poster_html, render_html_to_image
+from stock_names import format_display
 
 FEISHU_WEBHOOK = os.environ.get(
     "FEISHU_WEBHOOK",
@@ -84,21 +85,22 @@ def generate_and_send():
 
         weekly_net = df["net"].sum()
 
-        top_buys = (
-            df.sort_values("net", ascending=False).head(5)
-            .apply(lambda r: {
-                "ticker": r["KOR_SECN_NM"][:8].split(" ")[0],
+        def make_row(r):
+            ticker, cn_name = format_display(r["KOR_SECN_NM"])
+            return {
+                "ticker": ticker,
+                "cn_name": cn_name,
                 "name": r["KOR_SECN_NM"],
                 "buy": r["buy"], "sell": r["sell"], "net": r["net"],
-            }, axis=1).tolist()
+            }
+
+        top_buys = (
+            df.sort_values("net", ascending=False).head(5)
+            .apply(make_row, axis=1).tolist()
         )
         top_sells = (
             df.sort_values("net", ascending=True).head(5)
-            .apply(lambda r: {
-                "ticker": r["KOR_SECN_NM"][:8].split(" ")[0],
-                "name": r["KOR_SECN_NM"],
-                "buy": r["buy"], "sell": r["sell"], "net": r["net"],
-            }, axis=1).tolist()
+            .apply(make_row, axis=1).tolist()
         )
 
         # 生成 HTML

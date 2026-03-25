@@ -121,7 +121,8 @@ def build_poster_html(
     def render_rows(rows, is_buy):
         html_rows = []
         for idx, row in enumerate(rows[:5]):
-            name = html_mod.escape(row.get("name", "")[:35])
+            ticker = html_mod.escape(row.get("ticker", ""))
+            cn_name = html_mod.escape(row.get("cn_name", ""))
             net = row.get("net", 0)
             buy_amt = row.get("buy", 0)
             sell_amt = row.get("sell", 0)
@@ -137,12 +138,18 @@ def build_poster_html(
 
             detail = f"买入 {fmt_usd(buy_amt)} / 卖出 {fmt_usd(sell_amt)}"
 
+            # 中文名标签
+            cn_badge = ""
+            if cn_name:
+                cn_badge = f'<span class="text-[9px] text-gray-400 font-medium truncate leading-none pt-[1px]">{cn_name}</span>'
+
             html_rows.append(f"""
                 <div class="flex items-center justify-between py-1">
                     <div class="flex items-center gap-3 flex-1 min-w-0 mr-2">
                         <div class="w-1 h-5 bg-gradient-to-br {bar_class} rounded-full flex-none shadow-sm"></div>
                         <div class="ticker-row">
-                            <span class="text-[11px] text-gray-600 font-medium truncate leading-none">{name}</span>
+                            <span class="text-lg font-bold text-gray-800 leading-none flex-none tracking-tight">{ticker}</span>
+                            {cn_badge}
                         </div>
                     </div>
                     <div class="text-right flex-none">
