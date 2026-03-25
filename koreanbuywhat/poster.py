@@ -6,6 +6,23 @@ import html as html_mod
 from pathlib import Path
 
 
+# ────────────────────────────────────────────
+# Helpers
+# ────────────────────────────────────────────
+
+def render_highlight_codes(rows, side: str, n: int = 2) -> str:
+    codes = [html_mod.escape(r.get("ticker", "")) for r in rows[:n] if r.get("ticker")]
+    if not codes:
+        return '<span style="color:#9ca3af">—</span>'
+    parts = []
+    for i, code in enumerate(codes):
+        parts.append(f'<span>{code}</span>')
+        if i != len(codes) - 1:
+            sep_color = "#6ee7b7" if side == "buy" else "#fda4af"
+            parts.append(f'<span style="color:{sep_color};margin:0 2px">/</span>')
+    return "".join(parts)
+
+
 def fmt_usd(v):
     if abs(v) >= 1e9:
         return f"${v / 1e9:,.2f}B"
@@ -74,21 +91,30 @@ def build_poster_html(
     top_buys: list,
     top_sells: list,
 ) -> str:
+    """
+    生成韩国投资者海外股票 TOP5 海报 HTML。
+    market_label: "美股" / "港股"
+    top_buys / top_sells: [{"ticker", "name", "buy", "sell", "net"}, ...]
+    """
+
     # 日期拆分
     parts = period_str.split(" ~ ")
-    start_date = parts[0] if parts else period_str
     end_date = parts[-1] if parts else period_str
     try:
         y, m, d = end_date.split("-")
+        year_display = y
         md_display = f"{m}.{d}"
     except Exception:
+        year_display = end_date[:4]
         md_display = end_date[5:]
-    try:
-        _, sm, sd = start_date.split("-")
-        period_short = f"{sm}.{sd} – {md_display}"
-    except Exception:
-        period_short = period_str
 
+    # 头部胶囊
+    buy_rows = [{"ticker": r.get("ticker", r.get("name", "")[:6])} for r in top_buys]
+    sell_rows = [{"ticker": r.get("ticker", r.get("name", "")[:6])} for r in top_sells]
+    highlight_buys = render_highlight_codes(buy_rows, "buy", 2)
+    highlight_sells = render_highlight_codes(sell_rows, "sell", 2)
+
+    # Flag emoji
     flag = "🇺🇸" if market_code == "US" else "🇭🇰"
 
     # 渲染行
@@ -100,142 +126,159 @@ def build_poster_html(
             net = row.get("net", 0)
             buy_amt = row.get("buy", 0)
             sell_amt = row.get("sell", 0)
-            rank = idx + 1
 
             if is_buy:
-                accent = "#10b981"
-                accent_bg = "rgba(16,185,129,0.08)"
+                bar_class = "from-emerald-500 to-teal-400" if idx < 3 else "from-emerald-400 to-emerald-300"
+                num_color = "text-emerald-600"
                 net_display = f"+{fmt_usd(net)}"
             else:
-                accent = "#f43f5e"
-                accent_bg = "rgba(244,63,94,0.08)"
+                bar_class = "from-rose-500 to-orange-500" if idx < 3 else "from-rose-400 to-rose-300"
+                num_color = "text-rose-600"
                 net_display = f"-{fmt_usd(abs(net))}"
 
-            detail = f"买 {fmt_usd(buy_amt)} · 卖 {fmt_usd(sell_amt)}"
+            detail = f"买入 {fmt_usd(buy_amt)} / 卖出 {fmt_usd(sell_amt)}"
 
-            label_html = f'<span style="color:#94a3b8;font-size:10px;margin-left:6px">{cn_name}</span>' if cn_name else ""
+            # 中文名标签
+            cn_badge = ""
+            if cn_name:
+                cn_badge = f'<span class="text-[9px] text-gray-400 font-medium truncate leading-none pt-[1px]">{cn_name}</span>'
 
             html_rows.append(f"""
-            <div style="display:flex;align-items:center;padding:10px 0;border-bottom:1px solid rgba(241,245,249,0.8)">
-                <div style="width:22px;height:22px;border-radius:6px;background:{accent_bg};color:{accent};font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">{rank}</div>
-                <div style="flex:1;min-width:0;margin-left:10px">
-                    <div style="display:flex;align-items:baseline">
-                        <span style="font-size:15px;font-weight:700;color:#0f172a;letter-spacing:-0.3px">{ticker}</span>
-                        {label_html}
+                <div class="flex items-center justify-between py-1">
+                    <div class="flex items-center gap-3 flex-1 min-w-0 mr-2">
+                        <div class="w-1 h-5 bg-gradient-to-br {bar_class} rounded-full flex-none shadow-sm"></div>
+                        <div class="ticker-row">
+                            <span class="text-lg font-bold text-gray-800 leading-none flex-none tracking-tight">{ticker}</span>
+                            {cn_badge}
+                        </div>
                     </div>
-                    <div style="font-size:9px;color:#cbd5e1;margin-top:2px">{detail}</div>
+                    <div class="text-right flex-none">
+                        <div class="text-[15px] font-bold {num_color} mono-nums leading-none">{net_display}</div>
+                        <div class="text-[8px] text-gray-300 leading-none mt-[3px]">{detail}</div>
+                    </div>
                 </div>
-                <div style="text-align:right;flex-shrink:0;margin-left:8px">
-                    <div class="mono-nums" style="font-size:16px;font-weight:700;color:{accent};letter-spacing:-0.5px">{net_display}</div>
-                </div>
-            </div>""")
+            """)
 
         if not html_rows:
-            html_rows.append('<div style="padding:12px 0;font-size:11px;color:#94a3b8">本周暂无数据</div>')
+            tip = "本周暂无显著净买入" if is_buy else "本周暂无显著净卖出"
+            html_rows.append(f'<div class="text-[10px] text-gray-400 px-1 py-2">{tip}</div>')
         return "\n".join(html_rows)
 
     buys_html = render_rows(top_buys, is_buy=True)
     sells_html = render_rows(top_sells, is_buy=False)
 
+    # 周净买入
     net_sign = "+" if weekly_net >= 0 else ""
-    net_color = "#10b981" if weekly_net >= 0 else "#f43f5e"
-
-    # top 2 tickers for hero badges
-    buy_tickers = [r.get("ticker", "") for r in top_buys[:2]]
-    sell_tickers = [r.get("ticker", "") for r in top_sells[:2]]
-    buy_hero = " / ".join(buy_tickers) if buy_tickers else "—"
-    sell_hero = " / ".join(sell_tickers) if sell_tickers else "—"
+    net_color = "#059669" if weekly_net >= 0 else "#e11d48"
 
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
     <style>
-        * {{ margin:0; padding:0; box-sizing:border-box; }}
         body {{
             font-family: 'Inter', -apple-system, sans-serif;
-            background: #0f172a;
+            background-color: #ffffff;
             display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; padding: 20px;
+            min-height: 100vh; margin: 0; padding: 20px;
         }}
-        .poster {{
-            width: 420px;
-            background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
-        }}
-        .mono-nums {{ font-family: 'JetBrains Mono', monospace; }}
+        .poster-container {{ width: 100%; max-width: 420px; background: #ffffff;
+            border-radius: 24px; overflow: hidden;
+            box-shadow: 0 20px 50px -10px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column; }}
+        .mono-nums {{ font-family: 'JetBrains Mono', monospace; letter-spacing: -0.5px; }}
+        .highlight-wrap {{ margin-top: 4px; padding: 0 20px 6px 20px; }}
+        .highlight-row {{ display: flex; gap: 8px; }}
+        .highlight-card {{ flex: 1; border-radius: 12px; padding: 6px 10px;
+            display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 2px 6px rgba(15,23,42,0.06); border: 1px solid transparent; }}
+        .highlight-card-buy {{ background: #ecfdf3; border-color: #bbf7d0; }}
+        .highlight-card-sell {{ background: #fef2f2; border-color: #fecaca; }}
+        .highlight-tag {{ border-radius: 999px; padding: 2px 6px; font-size: 9px;
+            font-weight: 700; line-height: 1; color: #ffffff; }}
+        .highlight-tag-buy {{ background: #22c55e; }}
+        .highlight-tag-sell {{ background: #f97373; }}
+        .highlight-text {{ font-size: 12px; font-weight: 700; line-height: 1;
+            padding-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+        .highlight-text-buy {{ color: #064e3b; }}
+        .highlight-text-sell {{ color: #881337; }}
+        .ticker-row {{ display: flex; align-items: center; gap: 0.35rem;
+            min-width: 0; flex: 1; }}
     </style>
 </head>
 <body>
-<div class="poster page">
-
-    <!-- ===== HEADER ===== -->
-    <div style="padding:24px 24px 16px">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div>
-                <div style="display:inline-block;background:rgba(99,102,241,0.15);color:#818cf8;font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:0.5px;text-transform:uppercase">서학개미 레이더</div>
-                <h1 style="font-size:24px;font-weight:800;color:#f8fafc;margin-top:8px;letter-spacing:-0.5px;line-height:1.1">
-                    {flag} 韩国人买什么{html_mod.escape(market_label)}
-                </h1>
+    <div class="poster-container page">
+        <!-- Header -->
+        <div class="px-5 pt-5 pb-1 bg-white border-b border-gray-50 flex-none">
+            <div class="flex justify-between items-end">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="bg-gray-900 text-white text-[9px] font-bold px-1.5 py-[2px] rounded-sm uppercase tracking-wider leading-none">서학개미 레이더</span>
+                    </div>
+                    <h1 class="text-2xl font-extrabold text-gray-900 leading-none tracking-tight">
+                        {flag} 韩国人买什么{market_label}
+                    </h1>
+                </div>
+                <div class="text-right">
+                    <div class="text-lg font-bold text-gray-400 mono-nums leading-none">{html_mod.escape(year_display)}</div>
+                    <div class="text-xl font-bold text-gray-900 mono-nums leading-none">{html_mod.escape(md_display)}</div>
+                </div>
             </div>
-            <div style="text-align:right">
-                <div class="mono-nums" style="font-size:28px;font-weight:800;color:#f8fafc;letter-spacing:-1px;line-height:1">{html_mod.escape(md_display)}</div>
-                <div style="font-size:10px;color:#64748b;margin-top:2px">{html_mod.escape(period_short)}</div>
+            <div class="highlight-wrap">
+                <div class="highlight-row">
+                    <div class="highlight-card highlight-card-buy">
+                        <div class="highlight-tag highlight-tag-buy">买入</div>
+                        <div class="highlight-text highlight-text-buy">{highlight_buys}</div>
+                    </div>
+                    <div class="highlight-card highlight-card-sell">
+                        <div class="highlight-tag highlight-tag-sell">卖出</div>
+                        <div class="highlight-text highlight-text-sell">{highlight_sells}</div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Hero badges -->
-        <div style="display:flex;gap:8px;margin-top:14px">
-            <div style="flex:1;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px">
-                <div style="background:#10b981;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px">BUY</div>
-                <div style="font-size:12px;font-weight:700;color:#6ee7b7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{html_mod.escape(buy_hero)}</div>
-            </div>
-            <div style="flex:1;background:rgba(244,63,94,0.1);border:1px solid rgba(244,63,94,0.2);border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:8px">
-                <div style="background:#f43f5e;color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px">SELL</div>
-                <div style="font-size:12px;font-weight:700;color:#fda4af;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{html_mod.escape(sell_hero)}</div>
-            </div>
+        <!-- Summary -->
+        <div class="px-5 py-1 bg-gray-50/50 flex items-center gap-2">
+            <span class="text-[10px] text-gray-400">周结算净买入</span>
+            <span class="text-[13px] font-bold mono-nums" style="color:{net_color}">{net_sign}{fmt_usd(abs(weekly_net))}</span>
         </div>
-
-        <!-- Net total -->
-        <div style="margin-top:12px;display:flex;align-items:center;gap:8px">
-            <span style="font-size:10px;color:#64748b">周结算净流入</span>
-            <span class="mono-nums" style="font-size:18px;font-weight:800;color:{net_color}">{net_sign}{fmt_usd(abs(weekly_net))}</span>
-        </div>
-    </div>
-
-    <!-- ===== CONTENT ===== -->
-    <div style="background:#ffffff;border-radius:16px 16px 0 0;margin-top:4px">
 
         <!-- Buy section -->
-        <div style="padding:14px 20px 4px">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-                <div style="width:6px;height:6px;border-radius:50%;background:#10b981"></div>
-                <span style="font-size:10px;font-weight:700;color:#10b981;letter-spacing:0.5px;text-transform:uppercase">Top 净买入</span>
+        <div class="flex flex-col border-b border-gray-100">
+            <div class="px-5 py-2 flex items-center bg-emerald-50/50">
+                <div class="flex items-center gap-1.5">
+                    <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                    <h2 class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">● TOP 周度净买入 (NET BUY)</h2>
+                </div>
             </div>
-            {buys_html}
+            <div class="flex flex-col gap-[2px] px-4 py-1">
+                {buys_html}
+            </div>
         </div>
 
-        <!-- Divider -->
-        <div style="margin:0 20px;border-top:1px dashed #e2e8f0"></div>
-
         <!-- Sell section -->
-        <div style="padding:14px 20px 4px">
-            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-                <div style="width:6px;height:6px;border-radius:50%;background:#f43f5e"></div>
-                <span style="font-size:10px;font-weight:700;color:#f43f5e;letter-spacing:0.5px;text-transform:uppercase">Top 净卖出</span>
+        <div class="flex flex-col bg-gray-50/60">
+            <div class="px-5 py-2 flex items-center bg-rose-50/50 border-t border-rose-100/50">
+                <div class="flex items-center gap-1.5">
+                    <div class="w-1.5 h-1.5 bg-rose-500 rounded-full"></div>
+                    <h2 class="text-[10px] font-bold text-rose-800 uppercase tracking-wider">● TOP 周度净卖出 (NET SELL)</h2>
+                </div>
             </div>
-            {sells_html}
+            <div class="flex flex-col gap-[2px] px-4 py-1 pb-2">
+                {sells_html}
+            </div>
         </div>
 
         <!-- Footer -->
-        <div style="padding:10px 20px 14px;text-align:center">
-            <div style="font-size:8px;color:#cbd5e1">来自 한국예탁결제원 (KSD) 官方数据 · 仅供参考</div>
+        <div class="px-4 py-1 bg-white border-t border-gray-50 flex-none">
+            <p class="text-[7px] text-gray-300 text-center leading-tight">
+                来自한국예탁결제원(KSD)官方数据，仅供参考，不构成任何投资建议。
+            </p>
         </div>
     </div>
-</div>
 </body>
 </html>""".strip()
