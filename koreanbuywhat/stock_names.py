@@ -93,26 +93,119 @@ NAME_TO_TICKER = {
     "VS TRUST 2X LONG VIX": "UVIX",
     "NEOS NASDAQ 100 HIGH INCOME": "QQQI",
     "T-REX 2X LONG MSTR": "MSTU",
-    # 港股
-    "GLOBAL X CHINA ELECTRIC VEHICLE": "2845.HK",
-    "CATL ORD H": "3750.HK",
-    "SEMICONDUCTOR MANUFACTURING INTL": "0981.HK",
-    "BAIDU": "9888.HK",
-    "TENCENT HOLDINGS": "0700.HK",
-    "XIAOMI": "1810.HK",
-    "CHINA RESOURCES POWER": "0836.HK",
-    "ALIBABA": "9988.HK",
-    "BYD": "1211.HK",
-    "MEITUAN": "3690.HK",
-    "JD.COM": "9618.HK",
-    "NETEASE": "9999.HK",
-    "LI AUTO": "2015.HK",
-    "NIO": "9866.HK",
-    "XPENG": "9868.HK",
-    "KUAISHOU": "1024.HK",
-    "BILIBILI": "9626.HK",
-    "LENOVO": "0992.HK",
-    "CHINA MERCHANT": "3968.HK",
+    # ── 港股 (HK) ──
+    # 科技 / 互联网
+    "TENCENT HOLDINGS": "0700", "ALIBABA GROUP": "9988", "MEITUAN": "3690",
+    "JD.COM": "9618", "BAIDU": "9888", "NETEASE": "9999",
+    "KUAISHOU": "1024", "BILIBILI": "9626", "XIAOMI": "1810",
+    "KINGDEE": "0268", "KINGSOFT CLOUD": "3896", "SENSETIME": "0020",
+    "TRIP.COM": "9961", "WEIBO": "9898", "KE HOLDINGS": "2423",
+    "GDS HOLDINGS": "9698", "POP MART": "9992",
+    "PING AN HEALTHCARE": "1833", "JD HEALTH": "6618",
+    "JD LOGISTICS": "2618", "XPENG": "9868", "NIO": "9866",
+    "LI AUTO": "2015", "GEELY AUTOMOBILE": "0175",
+    "BYD CO": "1211", "BYD ELECTRONIC": "0285",
+    "LEAPMOTOR": "9863", "YADEA GROUP": "1585",
+    # 半导体 / 硬件
+    "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
+    "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
+    "ASM PACIFIC": "0522", "Q TECHNOLOGY": "1478",
+    "LENOVO GROUP": "0992", "ZTE CORP": "0763",
+    "COWELL E": "1415",
+    # 新能源 / 电力
+    "CATL ORD H": "3750", "GANFENGLITHIUM": "1772",
+    "TIANQI LITHIUM": "9696", "XINYI SOLAR": "0968",
+    "XINYI GLASS": "0868", "GCL TECHNOLOGY": "3800",
+    "LONGI GREEN": "1289",
+    "CHINA LONGYUAN": "0916", "CGN POWER": "1816",
+    "CHINA SUNTIEN": "0956", "CHINA DATANG": "1798",
+    "DONGFANG ELECTRIC": "1072", "HARBIN ELECTRIC": "1133",
+    "XINJIANG GOLDWIND": "2208", "XINTE ENERGY": "1799",
+    "CHINA RESOURCES POWER": "0836", "CHINA POWER INTL": "2380",
+    "HUANENG POWER": "0902",
+    # 金融 / 保险
+    "PING AN INSURANCE": "2318", "CHINA LIFE INSURANCE": "2628",
+    "AIA GROUP": "1299", "PICC PROPERTY": "2328",
+    "CITIC SECURITIES": "6030", "HUATAI SECURITIES": "6886",
+    "GUOTAI JUNAN": "2611", "CHINA GALAXY SECURITIES": "6881",
+    "INDUSTRIAL AND COMMERCIAL BANK": "1398", "CHINA CONSTRUCTION BANK": "0939",
+    # 资源 / 能源
+    "PETROCHINA": "0857", "CHINA PETROLEUM AND CHEMICAL": "0386",
+    "CNOOC": "0883", "CHINA SHENHUA": "1088",
+    "CHINA COAL ENERGY": "1898", "ZIJIN MINING": "2899",
+    "JIANGXI COPPER": "0358", "CMOC GROUP": "3993",
+    "CHINA HONGQIAO": "1378", "ALUMINUM CORP": "2600",
+    "YANCOAL AUSTRALIA": "3668", "YANKUANG ENERGY": "1171",
+    "CHINA GOLD": "2099",
+    # 消费 / 医药
+    "WUXI BIOLOGICS": "2269", "WUXI APPTEC": "2359",
+    "BEIGENE": "6160", "INNOVENT BIOLOGICS": "1801",
+    "REMEGEN": "9995", "ZAI LAB": "9688",
+    "AKESO": "9926", "GIANT BIOGENE": "2367",
+    "ALPHAMAB": "9966",
+    "PRADA": "1913", "ANTA SPORTS": "2020",
+    "BUDWEISER BREWING": "1876", "FUFENG GROUP": "0546",
+    "SAMSONITE": "1910", "MAN WAH": "1999",
+    "MIXUE GROUP": "2097", "LAOPU GOLD": "6181",
+    "CTG DUTY-FREE": "1880",
+    # 地产 / 建筑
+    "COUNTRY GARDEN": "2007", "CHINA VANKE": "2202",
+    "LONGFOR GROUP": "0960", "SUNAC CHINA": "1918",
+    "CHINA STATE CONSTRUCTION": "3311",
+    "CHINA RAILWAY CONSTRUCTION": "1186",
+    # 公用事业 / 基建
+    "CHINA MOBILE": "0941", "CHINA TELECOM": "0728",
+    "CHINA UNICOM": "0762", "CITIC TELECOM": "1883",
+    "CHINA COMMUNICATIONS SERVICES": "0552",
+    "ENN ENERGY": "2688", "CHINA GAS": "0384",
+    "KUNLUN ENERGY": "0135",
+    "COSCO SHIPPING HOLDINGS": "1919", "COSCO SHIPPING ENERGY": "1138",
+    "ORIENT OVERSEAS": "0316",
+    # 工业
+    "GREAT WALL MOTOR": "2333", "WEICHAI POWER": "2338",
+    "ZOOMLION HEAVY": "1157", "SHANGHAI ELECTRIC": "2727",
+    "NINE DRAGONS PAPER": "2689", "DONGYUE GROUP": "0189",
+    # 机器人 / AI
+    "ROBOSENSE": "2498", "HORIZONROBOT": "9660",
+    "UBTECH ROBOTICS": "9880",
+    "GLOBAL X CHINA ROBOTICS": "2807",
+    # ETF
+    "GLOBAL X CHINA ELECTRIC VEHICLE": "2845",
+    "GLOBAL X CHINA SEMICONDUCTOR": "3191",
+    "GLOBAL X CHINA CLOUD": "2826",
+    "GLOBAL X CHINA BIOTECH": "2820",
+    "GLOBAL X CHINA CLEAN ENERGY": "2809",
+    "GLOBAL X CHINA CONSUMER": "2806",
+    "GLOBAL X HANG SENG TECH": "3088",
+    "GLOBAL X HANG SENG HIGH DIVIDEND": "3110",
+    "GLOBAL X MSCI CHINA": "3040",
+    "GLOBAL X ASIA SEMICONDUCTOR": "3119",
+    "GLOBAL X NASDAQ100 COV CALL": "3014",
+    "CSOP HANG SENG TECH INDEX DAILY 2X": "7226",
+    "CSOP HANG SENG TECH INDEX DAILY -2X": "7552",
+    "CSOP HANG SENG TECH INDEX ETF": "3033",
+    "CSOP FTSE CHINA A50": "2822",
+    "CSOP TESLA 2X": "9160",
+    "CSOP MICROSTRATEGY 2X": "9173",
+    "CSOP GOLD FUTURES DAILY 2X": "7299",
+    "CSOP SZSE CHINEXT": "3147",
+    "HANG SENG TECH INDEX ETF": "3032",
+    "TRACKER FUND OF HONG KONG": "2800",
+    "ISHARES CORE CSI 300": "2846",
+    "ISHARES CORE MSCI TAIWAN": "3174",
+    "ISHARES CORE SP BSE SENSEX INDIA": "2836",
+    "ISHARES HS TECH": "3067",
+    "CHINAAMC CSI 300": "3188",
+    "CHINAAMC HANG SENG HK BIOTECH": "3069",
+    "XL2CSOPHYNIX": "7266", "XL2CSOPNVDA": "7247",
+    "XL2CSOPSMSN": "7249",
+    "SAMSUNG BITCOIN": "3135",
+    "SAMSUNG SP GSCI CRUDE OIL": "3175",
+    # Others
+    "CAROTE": "2549", "BLOKS GROUP": "1850",
+    "XUNCE": "2415", "BUSYMING": "2912",
+    "WUXI LEAD INTELLIGENT": "0011", "SANHUA INTELLIGENT": "2541",
+    "SUN.KING TECHNOLOGY": "1165",
 }
 
 # Ticker → 中文名
@@ -158,20 +251,107 @@ TICKER_TO_CN = {
     "QQQI": "纳指高收益ETF", "MSTU": "MSTR 2倍做多",
     "MRVL": "Marvell 2倍",
     "LITE": "Lumentum光通信",
-    # 港股
-    "2845.HK": "中国电动车电池ETF", "3750.HK": "宁德时代H",
-    "0981.HK": "中芯国际", "9888.HK": "百度",
-    "0700.HK": "腾讯", "1810.HK": "小米",
-    "0836.HK": "华润电力", "9988.HK": "阿里巴巴",
-    "1211.HK": "比亚迪", "3690.HK": "美团",
-    "9618.HK": "京东", "9999.HK": "网易",
-    "2015.HK": "理想汽车", "9866.HK": "蔚来",
-    "9868.HK": "小鹏汽车", "1024.HK": "快手",
-    "9626.HK": "哔哩哔哩", "0992.HK": "联想",
+    # ── 港股 ──
+    # 科技 / 互联网
+    "0700": "腾讯", "9988": "阿里巴巴", "3690": "美团",
+    "9618": "京东", "9888": "百度", "9999": "网易",
+    "1024": "快手", "9626": "哔哩哔哩", "1810": "小米",
+    "0268": "金蝶国际", "3896": "金山云", "0020": "商汤",
+    "9961": "携程", "9898": "微博", "2423": "贝壳",
+    "9698": "万国数据", "9992": "泡泡玛特",
+    "1833": "平安好医生", "6618": "京东健康",
+    "2618": "京东物流", "9868": "小鹏汽车", "9866": "蔚来",
+    "2015": "理想汽车", "0175": "吉利汽车",
+    "1211": "比亚迪", "0285": "比亚迪电子",
+    "9863": "零跑汽车", "1585": "雅迪控股",
+    # 半导体 / 硬件
+    "0981": "中芯国际", "1347": "华虹半导体",
+    "2382": "舜宇光学", "6088": "鸿腾精密",
+    "0522": "ASM太平洋", "1478": "丘钛科技",
+    "0992": "联想集团", "0763": "中兴通讯",
+    "1415": "高伟电子",
+    # 新能源
+    "3750": "宁德时代H", "1772": "赣锋锂业",
+    "9696": "天齐锂业", "0968": "信义光能",
+    "0868": "信义玻璃", "3800": "协鑫科技",
+    "0916": "龙源电力", "1816": "中广核电力",
+    "0956": "中国新能源", "1798": "大唐新能源",
+    "1072": "东方电气", "1133": "哈尔滨电气",
+    "2208": "金风科技", "1799": "新特能源",
+    "0836": "华润电力", "2380": "中国电力",
+    "0902": "华能国际",
+    # 金融
+    "2318": "中国平安", "2628": "中国人寿",
+    "1299": "友邦保险", "2328": "中国财险",
+    "6030": "中信证券", "6886": "华泰证券",
+    "2611": "国泰君安", "6881": "中国银河",
+    "1398": "工商银行", "0939": "建设银行",
+    # 资源
+    "0857": "中国石油", "0386": "中国石化",
+    "0883": "中海油", "1088": "中国神华",
+    "1898": "中煤能源", "2899": "紫金矿业",
+    "0358": "江西铜业", "3993": "洛阳钼业",
+    "1378": "中国宏桥", "2600": "中铝",
+    "3668": "兖煤澳大利亚", "1171": "兖矿能源",
+    "2099": "中国黄金",
+    # 消费 / 医药
+    "2269": "药明生物", "2359": "药明康德",
+    "6160": "百济神州", "1801": "信达生物",
+    "9995": "荣昌生物", "9688": "再鼎医药",
+    "9926": "康方生物", "2367": "巨子生物",
+    "9966": "康宁杰瑞",
+    "1913": "Prada", "2020": "安踏体育",
+    "1876": "百威亚太", "0546": "阜丰集团",
+    "1910": "新秀丽", "1999": "敏华控股",
+    "2097": "蜜雪冰城", "6181": "老铺黄金",
+    "1880": "中免国际",
+    # 地产 / 建筑
+    "2007": "碧桂园", "2202": "万科",
+    "0960": "龙湖集团", "1918": "融创中国",
+    "3311": "中国建筑国际", "1186": "中国铁建",
+    # 电信 / 基建
+    "0941": "中国移动", "0728": "中国电信",
+    "0762": "中国联通", "1883": "中信国际电讯",
+    "0552": "中国通信服务",
+    "2688": "新奥能源", "0384": "中国燃气",
+    "0135": "昆仑能源",
+    "1919": "中远海控", "1138": "中远海能",
+    "0316": "东方海外",
+    # 工业
+    "2333": "长城汽车", "2338": "潍柴动力",
+    "1157": "中联重科", "2727": "上海电气",
+    "2689": "玖龙纸业", "0189": "东岳集团",
+    # 机器人 / AI
+    "2498": "速腾聚创", "9660": "地平线机器人",
+    "9880": "优必选",
+    # ETF
+    "2845": "中国电动车ETF", "3191": "中国半导体ETF",
+    "2826": "中国云计算ETF", "2820": "中国生物科技ETF",
+    "2809": "中国清洁能源ETF", "2806": "中国消费ETF",
+    "3088": "恒生科技ETF", "3110": "恒生高股息ETF",
+    "3040": "MSCI中国ETF", "3119": "亚洲半导体ETF",
+    "3014": "纳指100备兑ETF",
+    "7226": "恒生科技2倍做多", "7552": "恒生科技2倍做空",
+    "3033": "恒生科技指数ETF", "2822": "A50 ETF",
+    "9160": "特斯拉2倍做多", "9173": "MSTR 2倍做多",
+    "7299": "黄金期货2倍", "3147": "创业板ETF",
+    "3032": "恒生科技ETF", "2800": "盈富基金",
+    "2846": "沪深300 ETF", "3174": "台湾ETF",
+    "2836": "印度ETF", "3067": "恒生科技ETF",
+    "3188": "华夏沪深300", "3069": "生物科技ETF",
+    "7266": "舜宇光学2倍", "7247": "英伟达2倍",
+    "7249": "三星2倍",
+    "3135": "三星比特币ETF", "3175": "三星原油ETF",
+    # Others
+    "2549": "卡罗特", "1850": "布鲁可",
+    "2415": "寻策", "2912": "忙忙科技",
+    "2807": "中国机器人ETF",
+    "0011": "无锡先导智能", "2541": "三花智控",
+    "1165": "阳光电源",
 }
 
 
-def resolve_ticker(secn_name: str) -> str:
+def resolve_ticker(secn_name: str, is_hk: bool = False) -> str:
     """从 SEIBro 英文名解析出 Ticker"""
     upper = secn_name.upper().strip()
     # 按关键词长度降序匹配，避免短关键词误匹配
@@ -187,11 +367,19 @@ def resolve_cn_name(ticker: str) -> str:
     return TICKER_TO_CN.get(ticker, "")
 
 
-def format_display(secn_name: str) -> tuple:
+def format_display(secn_name: str, is_hk: bool = False) -> tuple:
     """
-    SEIBro 英文名 → (ticker, chinese_name)
-    返回: ("TSLA", "特斯拉") 或 ("MICRON", "")
+    SEIBro 英文名 → (display_ticker, chinese_name)
+    美股: ("TSLA", "特斯拉")
+    港股: ("0700.HK", "腾讯")
     """
-    ticker = resolve_ticker(secn_name)
+    ticker = resolve_ticker(secn_name, is_hk)
     cn = resolve_cn_name(ticker)
-    return ticker, cn
+
+    # 港股: 纯数字 ticker 加 .HK 后缀显示
+    if is_hk and ticker.isdigit():
+        display = f"{ticker}.HK"
+    else:
+        display = ticker
+
+    return display, cn

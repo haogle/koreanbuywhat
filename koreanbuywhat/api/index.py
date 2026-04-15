@@ -37,7 +37,7 @@ def generate_report(start, end, market=None):
             continue
 
         def make_row(r):
-            ticker, cn_name = format_display(r["KOR_SECN_NM"])
+            ticker, cn_name = format_display(r["KOR_SECN_NM"], is_hk=(country == "HK"))
             return {
                 "name": r["KOR_SECN_NM"],
                 "ticker": ticker,
