@@ -149,7 +149,69 @@ PAGE_HTML = r"""<!DOCTYPE html>
   .masthead-right b { color: var(--ink); font-weight: 500; }
 
   /* ── Hero ── */
-  .hero { padding: var(--s-7) 0 var(--s-5); }
+  .hero {
+    padding: var(--s-7) 0 var(--s-5);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--s-7);
+    align-items: start;
+  }
+  .hero-text { min-width: 0; }
+  .hero-aside { grid-row: span 3; align-self: start; }
+
+  /* ── Subscribe / QR panel ── */
+  .subscribe {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-4);
+    background: var(--paper-dim);
+    border: 1px solid var(--rule);
+    max-width: 200px;
+    position: relative;
+  }
+  .subscribe::before {
+    content: "Subscribe · 订阅";
+    position: absolute;
+    top: -8px;
+    left: var(--s-3);
+    background: var(--paper);
+    padding: 0 var(--s-2);
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .subscribe img {
+    display: block;
+    width: 168px;
+    height: 168px;
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+  .subscribe-caption {
+    font-family: var(--serif-cn);
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--ink);
+    text-align: center;
+    line-height: 1.4;
+    padding-top: var(--s-1);
+    border-top: 1px solid var(--rule);
+    width: 100%;
+  }
+  .subscribe-caption em {
+    display: block;
+    font-family: var(--serif-en);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 2px;
+  }
+
   h1.title {
     font-family: var(--serif-cn);
     font-weight: 600;
@@ -487,6 +549,13 @@ PAGE_HTML = r"""<!DOCTYPE html>
     color: var(--ink-faint);
   }
 
+  @media (max-width: 820px) {
+    .hero {
+      grid-template-columns: 1fr;
+      gap: var(--s-6);
+    }
+    .hero-aside { grid-row: auto; justify-self: start; }
+  }
   @media (max-width: 640px) {
     .page { padding: var(--s-5) var(--s-4) var(--s-7); }
     .masthead-right { display: none; }
@@ -497,6 +566,7 @@ PAGE_HTML = r"""<!DOCTYPE html>
     .row-ticker { font-size: 17px; }
     .row-name { display: none; }
     .market-name .en { display: none; }
+    .subscribe img { width: 144px; height: 144px; }
   }
 </style>
 </head>
@@ -509,16 +579,27 @@ PAGE_HTML = r"""<!DOCTYPE html>
   </header>
 
   <section class="hero">
-    <h1 class="title">
-      韩国人买什么
-      <span class="en">What Korea's retail investors are really buying</span>
-    </h1>
-    <p class="deck">Settlement data straight from Korea Securities Depository, read against five foreign markets — the unglamorous record of where South Korean individual money actually flows each week.</p>
-    <div class="byline">
-      <span>Markets · <b>US · HK · CN · JP · VN</b></span>
-      <span>Source · <b>KSD SEIBro</b></span>
-      <span>Refreshed each session</span>
+    <div class="hero-text">
+      <h1 class="title">
+        韩国人买什么
+        <span class="en">What Korea's retail investors are really buying</span>
+      </h1>
+      <p class="deck">Settlement data straight from Korea Securities Depository, read against five foreign markets — the unglamorous record of where South Korean individual money actually flows each week.</p>
+      <div class="byline">
+        <span>Markets · <b>US · HK · CN · JP · VN</b></span>
+        <span>Source · <b>KSD SEIBro</b></span>
+        <span>Refreshed each session</span>
+      </div>
     </div>
+    <aside class="hero-aside">
+      <div class="subscribe">
+        <img src="/qrcode.png" alt="大佬持仓雷达 WeChat QR"/>
+        <div class="subscribe-caption">
+          欢迎关注 · 大佬持仓雷达
+          <em>Scan to follow on WeChat</em>
+        </div>
+      </div>
+    </aside>
   </section>
 
   <div class="controls">

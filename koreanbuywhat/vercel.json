@@ -1,8 +1,11 @@
 {
   "builds": [
-    { "src": "api/index.py", "use": "@vercel/python" }
+    { "src": "api/index.py", "use": "@vercel/python" },
+    { "src": "public/**", "use": "@vercel/static" }
   ],
   "routes": [
+    { "src": "/public/(.*)", "dest": "/public/$1" },
+    { "src": "/qrcode.png", "dest": "/public/qrcode.png" },
     { "src": "/(.*)", "dest": "api/index.py" }
   ]
 }
