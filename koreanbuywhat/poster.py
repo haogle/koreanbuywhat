@@ -1,63 +1,89 @@
 """
-poster.py -- 韩国投资者海外股票 TOP5 海报 HTML 生成 + Playwright 渲染 PNG
+poster.py -- 大佬持仓雷达 · 周度海报生成器
+------------------------------------------
+严格按 DESIGN_SPEC.md 实现：720×1080 treemap 竖版，方块大小 = 金额大小。
+
+Render pipeline:
+  notify_feishu.py
+    → build_poster_html(...)
+    → render_html_to_image(html, path)   (Playwright, 720×1080 @2x)
+    → PNG (1440×2160)
 """
 
 import html as html_mod
+from datetime import datetime
 from pathlib import Path
 
 
-# ────────────────────────────────────────────
-# Helpers
-# ────────────────────────────────────────────
+# ── Format helpers ──────────────────────────────────────────────────────────
 
-def render_highlight_codes(rows, side: str, n: int = 2) -> str:
-    codes = [html_mod.escape(r.get("ticker", "")) for r in rows[:n] if r.get("ticker")]
-    if not codes:
-        return '<span style="color:#9ca3af">—</span>'
-    parts = []
-    for i, code in enumerate(codes):
-        parts.append(f'<span>{code}</span>')
-        if i != len(codes) - 1:
-            sep_color = "#6ee7b7" if side == "buy" else "#fda4af"
-            parts.append(f'<span style="color:{sep_color};margin:0 2px">/</span>')
-    return "".join(parts)
+def fmt_m_abs(usd: float) -> str:
+    """以 $M 显示（绝对值）。≥1000M 显示 $xB"""
+    v = abs(usd) / 1e6
+    if v >= 1000:
+        return f"${v / 1000:.2f}B"
+    return f"${v:.1f}M"
 
 
-def fmt_usd(v):
-    if abs(v) >= 1e9:
-        return f"${v / 1e9:,.2f}B"
-    if abs(v) >= 1e6:
-        return f"${v / 1e6:,.1f}M"
-    if abs(v) >= 1e3:
-        return f"${v / 1e3:,.0f}K"
-    return f"${v:,.0f}"
+def fmt_signed(usd: float) -> str:
+    """+$105.1M / −$123.4M （U+2212 负号，视觉平衡）"""
+    if usd > 0:
+        return f"+{fmt_m_abs(usd)}"
+    if usd < 0:
+        return f"\u2212{fmt_m_abs(usd)}"
+    return "$0.0M"
 
 
-# ────────────────────────────────────────────
-# Playwright rendering
-# ────────────────────────────────────────────
+def tile_color(sign: int, flex: float) -> str:
+    """alpha 随 flex 加深: 0.55 + flex*0.85, clamped to 0.98"""
+    alpha = min(0.98, 0.55 + flex * 0.85)
+    if sign > 0:
+        return f"rgba(13, 136, 60, {alpha:.3f})"
+    return f"rgba(202, 30, 30, {alpha:.3f})"
+
+
+def split_tiles(items, sign: int):
+    """按 flex (金额占比) 分流：big(≥0.12) 进 treemap，tail(<0.12) 走整行"""
+    vals = [abs(x.get("net", 0)) for x in items]
+    total = sum(vals) or 1
+    tiles = []
+    for x in items:
+        flex = abs(x.get("net", 0)) / total
+        tiles.append({**x, "sign": sign, "flex": flex})
+    big = [t for t in tiles if t["flex"] >= 0.12]
+    tail = [t for t in tiles if t["flex"] < 0.12]
+    # 重新归一化 big 让其填满 100%
+    big_total = sum(t["flex"] for t in big) or 1
+    for t in big:
+        t["_flex_norm"] = t["flex"] / big_total
+    return big, tail
+
+
+def iso_week_of(date_str: str) -> int:
+    """从 'YYYY-MM-DD' 取 ISO 周号"""
+    try:
+        dt = datetime.strptime(date_str.strip(), "%Y-%m-%d")
+        return dt.isocalendar().week
+    except Exception:
+        return 0
+
+
+# ── Playwright rendering (720×1080 canvas) ──────────────────────────────────
 
 def render_html_to_image(html_content: str, output_path) -> None:
+    """Playwright 渲染 → PNG. 720×1080 @ 2x = 1440×2160"""
     from playwright.sync_api import sync_playwright
 
+    # 注入本地 NotoSansSC 字体作为 Chinese fallback（Helvetica 不含中文）
     font_path = Path(__file__).parent / "fonts" / "NotoSansSC-VariableFont_wght.ttf"
-    font_url = font_path.resolve().as_uri()
-
-    font_css = f"""
-    <style>
-    @font-face {{
-        font-family: 'NotoSansSC';
-        src: url('{font_url}') format('truetype');
-        font-weight: 100 900;
-        font-style: normal;
-    }}
-    </style>
-    """
-    html_content = html_content.replace("</head>", f"{font_css}</head>", 1)
-    html_content = html_content.replace(
-        "font-family: 'Inter', -apple-system, sans-serif;",
-        "font-family: 'Inter', -apple-system, 'NotoSansSC', sans-serif;",
-    )
+    if font_path.exists():
+        font_url = font_path.resolve().as_uri()
+        font_css = (
+            f"<style>@font-face{{font-family:'NotoSansSC';"
+            f"src:url('{font_url}') format('truetype');"
+            f"font-weight:100 900;}}</style>"
+        )
+        html_content = html_content.replace("</head>", f"{font_css}</head>", 1)
 
     output_path = Path(output_path)
     if not output_path.is_absolute():
@@ -66,22 +92,72 @@ def render_html_to_image(html_content: str, output_path) -> None:
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": 1080, "height": 1440}, device_scale_factor=2)
+        page = browser.new_page(
+            viewport={"width": 720, "height": 1080},
+            device_scale_factor=2,
+        )
         page.set_content(html_content, wait_until="networkidle")
-        page.wait_for_timeout(1500)
-        clip = page.evaluate("""() => {
-            const el = document.querySelector('.page');
-            const r = el.getBoundingClientRect();
-            return { x: Math.floor(r.x), y: Math.floor(r.y),
-                     width: Math.ceil(r.width), height: Math.ceil(r.height) + 40 };
-        }""")
-        page.screenshot(path=str(output_path), clip=clip, type="png")
+        page.wait_for_timeout(800)
+        page.screenshot(
+            path=str(output_path),
+            clip={"x": 0, "y": 0, "width": 720, "height": 1080},
+            type="png",
+        )
         browser.close()
 
 
-# ────────────────────────────────────────────
-# HTML poster builder
-# ────────────────────────────────────────────
+# ── HTML fragment builders ──────────────────────────────────────────────────
+
+def _esc(s) -> str:
+    return html_mod.escape(str(s or ""))
+
+
+def _tile_html(tile: dict) -> str:
+    """Treemap tile. Hero 阈值 flex > 0.35 触发更大字号。"""
+    ticker = _esc(tile.get("ticker", ""))
+    name = _esc(tile.get("cn_name") or tile.get("name", "")[:20])
+    amount = fmt_signed(tile["net"])
+    bg = tile_color(tile["sign"], tile["flex"])
+    flex_norm = tile.get("_flex_norm", tile["flex"])
+    is_hero = tile["flex"] > 0.35
+    hero_cls = " tile-hero" if is_hero else ""
+    return (
+        f'<div class="tile{hero_cls}" style="flex:{flex_norm:.4f};background:{bg}">'
+        f'<div class="tile-top">'
+        f'<div class="tile-ticker">{ticker}</div>'
+        f'<div class="tile-name">{name}</div>'
+        f'</div>'
+        f'<div class="tile-amount">{amount}</div>'
+        f'</div>'
+    )
+
+
+def _tail_html(tail_items: list, sign: int) -> str:
+    if not tail_items:
+        return ""
+    color = "#0d883c" if sign > 0 else "#ca1e1e"
+    rows = []
+    for t in tail_items:
+        ticker = _esc(t.get("ticker", ""))
+        name = _esc(t.get("cn_name") or t.get("name", "")[:24])
+        amount = fmt_signed(t["net"])
+        rows.append(
+            f'<div class="tail-row" style="border-left:4px solid {color}">'
+            f'<div class="tail-left">'
+            f'<span class="tail-ticker">{ticker}</span>'
+            f'<span class="tail-name">{name}</span>'
+            f'</div>'
+            f'<div class="tail-amount">{amount}</div>'
+            f'</div>'
+        )
+    cols = 2 if len(tail_items) >= 2 else 1
+    return (
+        f'<div class="tail" style="grid-template-columns:repeat({cols},1fr)">'
+        f'{"".join(rows)}</div>'
+    )
+
+
+# ── Main builder ────────────────────────────────────────────────────────────
 
 def build_poster_html(
     market_label: str,
@@ -90,195 +166,291 @@ def build_poster_html(
     weekly_net: float,
     top_buys: list,
     top_sells: list,
+    edition: str = None,
 ) -> str:
     """
-    生成韩国投资者海外股票 TOP5 海报 HTML。
-    market_label: "美股" / "港股"
-    top_buys / top_sells: [{"ticker", "name", "buy", "sell", "net"}, ...]
-    """
+    生成 720×1080 海报 HTML。
 
-    # 日期拆分
+    参数（与 notify_feishu.py 现有调用签名兼容）:
+      market_label: "美股" / "港股" / "A股" / "日股" / "越股"
+      market_code:  "US" / "HK" / "CN" / "JP" / "VN"
+      period_str:   "2026-03-14 ~ 2026-03-20"
+      weekly_net:   本周全市场净买入总额 (raw USD, 未除 1e6)
+      top_buys / top_sells: 每个 item:
+          { ticker, cn_name, name, buy, sell, net }  金额单位 raw USD
+      edition:      顶部期次标签。默认据 ISO 周自动生成 "WEEKLY · VOL.xx"
+    """
+    # ── 日期 ──
     parts = period_str.split(" ~ ")
-    end_date = parts[-1] if parts else period_str
+    end_date = parts[-1].strip() if parts else period_str
     try:
         y, m, d = end_date.split("-")
-        year_display = y
-        md_display = f"{m}.{d}"
+        date_display = f"{y}·{m}.{d}"
     except Exception:
-        year_display = end_date[:4]
-        md_display = end_date[5:]
+        date_display = end_date
 
-    # 头部胶囊
-    buy_rows = [{"ticker": r.get("ticker", r.get("name", "")[:6])} for r in top_buys]
-    sell_rows = [{"ticker": r.get("ticker", r.get("name", "")[:6])} for r in top_sells]
-    highlight_buys = render_highlight_codes(buy_rows, "buy", 2)
-    highlight_sells = render_highlight_codes(sell_rows, "sell", 2)
+    if edition is None:
+        wk = iso_week_of(end_date)
+        edition = f"WEEKLY · VOL.{wk:02d}" if wk else "WEEKLY"
 
-    # Flag emoji
-    flag = "🇺🇸" if market_code == "US" else "🇭🇰"
+    # ── 分流 ──
+    big_buys, tail_buys = split_tiles(top_buys or [], +1)
+    big_sells, tail_sells = split_tiles(top_sells or [], -1)
 
-    # 渲染行
-    def render_rows(rows, is_buy):
-        html_rows = []
-        for idx, row in enumerate(rows[:5]):
-            ticker = html_mod.escape(row.get("ticker", ""))
-            cn_name = html_mod.escape(row.get("cn_name", ""))
-            net = row.get("net", 0)
-            buy_amt = row.get("buy", 0)
-            sell_amt = row.get("sell", 0)
+    buy_tiles_html = "".join(_tile_html(t) for t in big_buys)
+    sell_tiles_html = "".join(_tile_html(t) for t in big_sells)
+    buy_tail_html = _tail_html(tail_buys, +1)
+    sell_tail_html = _tail_html(tail_sells, -1)
 
-            if is_buy:
-                bar_class = "from-emerald-500 to-teal-400" if idx < 3 else "from-emerald-400 to-emerald-300"
-                num_color = "text-emerald-600"
-                net_display = f"+{fmt_usd(net)}"
-            else:
-                bar_class = "from-rose-500 to-orange-500" if idx < 3 else "from-rose-400 to-rose-300"
-                num_color = "text-rose-600"
-                net_display = f"-{fmt_usd(abs(net))}"
+    def _section_body(tiles_html, tail_html, direction_cn):
+        if tiles_html:
+            return f'<div class="treemap">{tiles_html}</div>{tail_html}'
+        if tail_html:
+            # 只有小额 → 不渲染 treemap 空框，tail 顶到上方填充
+            return f'{tail_html}<div class="treemap empty-fill"></div>'
+        return f'<div class="treemap empty-state">本周暂无显著净{direction_cn}</div>'
 
-            detail = f"买入 {fmt_usd(buy_amt)} / 卖出 {fmt_usd(sell_amt)}"
+    buy_body = _section_body(buy_tiles_html, buy_tail_html, "买入")
+    sell_body = _section_body(sell_tiles_html, sell_tail_html, "卖出")
 
-            # 中文名标签
-            cn_badge = ""
-            if cn_name:
-                cn_badge = f'<span class="text-[9px] text-gray-400 font-medium truncate leading-none pt-[1px]">{cn_name}</span>'
-
-            html_rows.append(f"""
-                <div class="flex items-center justify-between py-1">
-                    <div class="flex items-center gap-3 flex-1 min-w-0 mr-2">
-                        <div class="w-1 h-5 bg-gradient-to-br {bar_class} rounded-full flex-none shadow-sm"></div>
-                        <div class="ticker-row">
-                            <span class="text-lg font-bold text-gray-800 leading-none flex-none tracking-tight">{ticker}</span>
-                            {cn_badge}
-                        </div>
-                    </div>
-                    <div class="text-right flex-none">
-                        <div class="text-[15px] font-bold {num_color} mono-nums leading-none">{net_display}</div>
-                        <div class="text-[8px] text-gray-300 leading-none mt-[3px]">{detail}</div>
-                    </div>
-                </div>
-            """)
-
-        if not html_rows:
-            tip = "本周暂无显著净买入" if is_buy else "本周暂无显著净卖出"
-            html_rows.append(f'<div class="text-[10px] text-gray-400 px-1 py-2">{tip}</div>')
-        return "\n".join(html_rows)
-
-    buys_html = render_rows(top_buys, is_buy=True)
-    sells_html = render_rows(top_sells, is_buy=False)
-
-    # 周净买入
-    net_sign = "+" if weekly_net >= 0 else ""
-    net_color = "#059669" if weekly_net >= 0 else "#e11d48"
+    # ── 统计数字 ──
+    net_display = fmt_signed(weekly_net)
+    net_color_class = "green" if weekly_net >= 0 else "red"
+    total_items = len([x for x in (top_buys or []) if x.get("net", 0) != 0]) \
+                + len([x for x in (top_sells or []) if x.get("net", 0) != 0])
 
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-    <style>
-        body {{
-            font-family: 'Inter', -apple-system, sans-serif;
-            background-color: #ffffff;
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; margin: 0; padding: 20px;
-        }}
-        .poster-container {{ width: 100%; max-width: 420px; background: #ffffff;
-            border-radius: 24px; overflow: hidden;
-            box-shadow: 0 20px 50px -10px rgba(0,0,0,0.1);
-            display: flex; flex-direction: column; }}
-        .mono-nums {{ font-family: 'JetBrains Mono', monospace; letter-spacing: -0.5px; }}
-        .highlight-wrap {{ margin-top: 4px; padding: 0 20px 6px 20px; }}
-        .highlight-row {{ display: flex; gap: 8px; }}
-        .highlight-card {{ flex: 1; border-radius: 12px; padding: 6px 10px;
-            display: flex; align-items: center; gap: 8px;
-            box-shadow: 0 2px 6px rgba(15,23,42,0.06); border: 1px solid transparent; }}
-        .highlight-card-buy {{ background: #ecfdf3; border-color: #bbf7d0; }}
-        .highlight-card-sell {{ background: #fef2f2; border-color: #fecaca; }}
-        .highlight-tag {{ border-radius: 999px; padding: 2px 6px; font-size: 9px;
-            font-weight: 700; line-height: 1; color: #ffffff; }}
-        .highlight-tag-buy {{ background: #22c55e; }}
-        .highlight-tag-sell {{ background: #f97373; }}
-        .highlight-text {{ font-size: 12px; font-weight: 700; line-height: 1;
-            padding-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
-        .highlight-text-buy {{ color: #064e3b; }}
-        .highlight-text-sell {{ color: #881337; }}
-        .ticker-row {{ display: flex; align-items: center; gap: 0.35rem;
-            min-width: 0; flex: 1; }}
-    </style>
+<meta charset="UTF-8">
+<style>
+  * {{ margin:0; padding:0; box-sizing:border-box; }}
+  html, body {{ width:720px; height:1080px; background:#f4f2ed; }}
+  body {{
+    font-family: Helvetica, "Helvetica Neue",
+                 "PingFang SC", "Hiragino Sans GB",
+                 "NotoSansSC", Arial, sans-serif;
+    color:#0a0a0a;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }}
+
+  .poster {{
+    width:720px; height:1080px;
+    padding:28px 26px 22px;
+    display:flex; flex-direction:column;
+  }}
+
+  /* ── Top Strip ───────────────────────── */
+  .top-strip {{
+    display:flex; align-items:center; gap:14px;
+    margin-bottom:18px;
+  }}
+  .top-strip .edition {{
+    font-size:11px; font-weight:700; letter-spacing:2px; opacity:0.55;
+  }}
+  .top-strip .rule {{ flex:1; height:1px; background:#0a0a0a; opacity:0.2; }}
+  .top-strip .date {{
+    font-size:12px; font-weight:700; letter-spacing:0.5px;
+  }}
+
+  /* ── Headline + Brand ───────────────── */
+  .headline-row {{
+    display:flex; justify-content:space-between; align-items:flex-end; gap:16px;
+  }}
+  .headline {{ flex:1; min-width:0; }}
+  .headline h1 {{
+    font-size:46px; font-weight:900; letter-spacing:-2px; line-height:0.95;
+  }}
+  .headline .deck {{
+    margin-top:12px; font-size:14px; font-weight:500; line-height:1.35;
+    opacity:0.7; max-width:380px;
+  }}
+
+  .brand {{
+    background:#0a0a0a; color:#fff;
+    padding:12px 14px; flex:none;
+  }}
+  .brand-tag {{
+    font-size:11px; font-weight:800; letter-spacing:3px;
+    opacity:0.75; margin-bottom:6px;
+  }}
+  .brand-main {{
+    font-size:22px; font-weight:900; letter-spacing:-0.6px; line-height:1;
+  }}
+  .brand-main .yellow {{ color:#ffcc00; }}
+
+  /* ── Stat Bar ───────────────────────── */
+  .statbar {{
+    margin-top:16px;
+    border-top:2px solid #0a0a0a;
+    border-bottom:2px solid #0a0a0a;
+    padding:10px 2px;
+    display:flex; align-items:flex-end; justify-content:space-between;
+  }}
+  .statbar .block {{ display:flex; flex-direction:column; gap:4px; }}
+  .statbar .right {{ text-align:right; }}
+  .statbar .label {{
+    font-size:11px; font-weight:700; letter-spacing:1.5px; opacity:0.55;
+  }}
+  .statbar .value {{
+    font-size:40px; font-weight:900; letter-spacing:-1.5px; line-height:1;
+  }}
+  .statbar .value.green {{ color:#0d883c; }}
+  .statbar .value.red   {{ color:#ca1e1e; }}
+  .statbar .value .unit {{
+    font-size:18px; font-weight:800; margin-left:4px; opacity:0.5;
+  }}
+
+  /* ── Section ────────────────────────── */
+  .section {{
+    margin-top:16px;
+    display:flex; flex-direction:column;
+    flex:1; min-height:0;
+  }}
+  .section-header {{
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:8px; flex:none;
+  }}
+  .badge {{
+    font-size:13px; font-weight:900; letter-spacing:1.5px;
+    color:#fff; padding:4px 10px; line-height:1;
+  }}
+  .badge.buy  {{ background:#0d883c; }}
+  .badge.sell {{ background:#ca1e1e; }}
+  .section-header .rule {{ flex:1; height:1px; }}
+  .section-header .rule.buy  {{ background:#0d883c; opacity:0.4; }}
+  .section-header .rule.sell {{ background:#ca1e1e; opacity:0.4; }}
+
+  /* ── Treemap ────────────────────────── */
+  .treemap {{
+    display:flex; flex-direction:row; gap:3px;
+    flex:1; min-height:0;
+  }}
+  .treemap.empty-state {{
+    background:#ffffff; align-items:center; justify-content:center;
+    font-size:13px; opacity:0.45; font-weight:500;
+  }}
+  .treemap.empty-fill {{ flex:0.4; background:transparent; }}
+
+  .tile {{
+    display:flex; flex-direction:column; justify-content:space-between;
+    padding:12px; color:#fff; min-width:0; overflow:hidden;
+  }}
+  .tile-top {{ display:flex; flex-direction:column; gap:4px; min-width:0; }}
+  .tile-ticker {{
+    font-size:22px; font-weight:900; letter-spacing:-0.8px; line-height:0.95;
+  }}
+  .tile-name {{
+    font-size:12px; font-weight:600; line-height:1.2; opacity:0.92;
+    display:-webkit-box; -webkit-line-clamp:2;
+    -webkit-box-orient:vertical; overflow:hidden;
+  }}
+  .tile-amount {{
+    font-size:18px; font-weight:800; letter-spacing:-0.4px; line-height:1;
+  }}
+
+  /* Hero tile (flex > 0.35) */
+  .tile.tile-hero {{ padding:16px; }}
+  .tile.tile-hero .tile-ticker {{ font-size:32px; }}
+  .tile.tile-hero .tile-name {{ font-size:15px; }}
+  .tile.tile-hero .tile-amount {{ font-size:26px; }}
+
+  /* ── Tail Row ───────────────────────── */
+  .tail {{
+    display:grid; gap:3px; margin-top:3px; flex:none;
+  }}
+  .tail-row {{
+    background:#ffffff; padding:9px 12px;
+    display:flex; justify-content:space-between; align-items:center;
+    gap:8px; min-width:0;
+  }}
+  .tail-left {{
+    display:flex; gap:8px; align-items:baseline;
+    min-width:0; overflow:hidden;
+  }}
+  .tail-ticker {{
+    font-size:16px; font-weight:800; letter-spacing:-0.2px; flex:none;
+  }}
+  .tail-name {{
+    font-size:11px; opacity:0.6;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }}
+  .tail-amount {{
+    font-size:15px; font-weight:800; letter-spacing:-0.2px; flex:none;
+  }}
+
+  /* ── Disclaimer ─────────────────────── */
+  .disclaimer {{
+    margin-top:14px;
+    background:#ffffff; border:2px solid #0a0a0a;
+    padding:12px 14px;
+    display:flex; gap:10px; align-items:flex-start;
+  }}
+  .disclaimer .must {{
+    background:#0a0a0a; color:#fff;
+    font-size:11px; font-weight:900; letter-spacing:1.5px;
+    padding:4px 8px; line-height:1; flex:none; align-self:flex-start;
+  }}
+  .disclaimer .text {{
+    font-size:12px; font-weight:500; line-height:1.5; flex:1;
+  }}
+  .disclaimer .text u {{ text-decoration: underline; }}
+  .disclaimer .text .red {{ color:#ca1e1e; font-weight:700; }}
+</style>
 </head>
 <body>
-    <div class="poster-container page">
-        <!-- Header -->
-        <div class="px-5 pt-5 pb-1 bg-white border-b border-gray-50 flex-none">
-            <div class="flex justify-between items-end">
-                <div>
-                    <div class="flex items-center gap-2 mb-1">
-                        <span class="bg-gray-900 text-white text-[9px] font-bold px-1.5 py-[2px] rounded-sm uppercase tracking-wider leading-none">서학개미 레이더</span>
-                    </div>
-                    <h1 class="text-2xl font-extrabold text-gray-900 leading-none tracking-tight">
-                        {flag} 韩国人买什么{market_label}
-                    </h1>
-                </div>
-                <div class="text-right">
-                    <div class="text-lg font-bold text-gray-400 mono-nums leading-none">{html_mod.escape(year_display)}</div>
-                    <div class="text-xl font-bold text-gray-900 mono-nums leading-none">{html_mod.escape(md_display)}</div>
-                </div>
-            </div>
-            <div class="highlight-wrap">
-                <div class="highlight-row">
-                    <div class="highlight-card highlight-card-buy">
-                        <div class="highlight-tag highlight-tag-buy">买入</div>
-                        <div class="highlight-text highlight-text-buy">{highlight_buys}</div>
-                    </div>
-                    <div class="highlight-card highlight-card-sell">
-                        <div class="highlight-tag highlight-tag-sell">卖出</div>
-                        <div class="highlight-text highlight-text-sell">{highlight_sells}</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="poster page">
 
-        <!-- Summary -->
-        <div class="px-5 py-1 bg-gray-50/50 flex items-center gap-2">
-            <span class="text-[10px] text-gray-400">周结算净买入</span>
-            <span class="text-[13px] font-bold mono-nums" style="color:{net_color}">{net_sign}{fmt_usd(abs(weekly_net))}</span>
-        </div>
+  <div class="top-strip">
+    <span class="edition">{_esc(edition)}</span>
+    <span class="rule"></span>
+    <span class="date">{_esc(date_display)}</span>
+  </div>
 
-        <!-- Buy section -->
-        <div class="flex flex-col border-b border-gray-100">
-            <div class="px-5 py-2 flex items-center bg-emerald-50/50">
-                <div class="flex items-center gap-1.5">
-                    <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-                    <h2 class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">● TOP 周度净买入 (NET BUY)</h2>
-                </div>
-            </div>
-            <div class="flex flex-col gap-[2px] px-4 py-1">
-                {buys_html}
-            </div>
-        </div>
-
-        <!-- Sell section -->
-        <div class="flex flex-col bg-gray-50/60">
-            <div class="px-5 py-2 flex items-center bg-rose-50/50 border-t border-rose-100/50">
-                <div class="flex items-center gap-1.5">
-                    <div class="w-1.5 h-1.5 bg-rose-500 rounded-full"></div>
-                    <h2 class="text-[10px] font-bold text-rose-800 uppercase tracking-wider">● TOP 周度净卖出 (NET SELL)</h2>
-                </div>
-            </div>
-            <div class="flex flex-col gap-[2px] px-4 py-1 pb-2">
-                {sells_html}
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="px-4 py-1 bg-white border-t border-gray-50 flex-none">
-            <p class="text-[7px] text-gray-300 text-center leading-tight">
-                来自한국예탁결제원(KSD)官方数据，仅供参考，不构成任何投资建议。
-            </p>
-        </div>
+  <div class="headline-row">
+    <div class="headline">
+      <h1>韩国人<br/>本周买什么{_esc(market_label)}</h1>
+      <p class="deck">周度净流入追踪 · 方块越大金额越重 · 数据源 KSD SEIBro</p>
     </div>
+    <div class="brand">
+      <div class="brand-tag">RADAR &#9656;</div>
+      <div class="brand-main">大佬持仓<br/><span class="yellow">雷达</span></div>
+    </div>
+  </div>
+
+  <div class="statbar">
+    <div class="block">
+      <div class="label">周结算净买入</div>
+      <div class="value {net_color_class}">{net_display}</div>
+    </div>
+    <div class="block right">
+      <div class="label">涉及标的</div>
+      <div class="value">{total_items}<span class="unit">只</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="badge buy">&#9650; 净买入 BUY</div>
+      <div class="rule buy"></div>
+    </div>
+    {buy_body}
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="badge sell">&#9660; 净卖出 SELL</div>
+      <div class="rule sell"></div>
+    </div>
+    {sell_body}
+  </div>
+
+  <div class="disclaimer">
+    <div class="must">必读</div>
+    <div class="text">数据来自 <u>韩国预托结济院（KSD）</u> 官方数据，<span class="red">不构成任何投资建议</span>，投资有风险，入市需谨慎。</div>
+  </div>
+
+</div>
 </body>
 </html>""".strip()
