@@ -6,3 +6,4 @@ __pycache__/
 .env
 .vercel/
 node_modules/
+_missing_names.log
