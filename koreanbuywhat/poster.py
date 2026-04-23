@@ -112,10 +112,34 @@ def _esc(s) -> str:
     return html_mod.escape(str(s or ""))
 
 
+def _display_name(tile: dict, max_len: int = 20) -> str:
+    """
+    选择 tile 下方要显示的副标题，保证 **永远不会** 与 ticker 重复：
+      1) 中文名存在 → 用中文名
+      2) SEIBro 英文名存在且不是 ticker 的复读 → 用英文名
+      3) 其它 → "未识别" 占位
+    """
+    cn = (tile.get("cn_name") or "").strip()
+    if cn:
+        return cn[:max_len]
+
+    raw = (tile.get("name") or "").strip()
+    if not raw:
+        return "未识别"
+
+    ticker = (tile.get("ticker") or "").strip()
+    raw_norm = raw.upper().replace(".HK", "").lstrip("0")
+    ticker_norm = ticker.upper().replace(".HK", "").lstrip("0")
+    # raw 是纯数字（SEIBro 偶尔返回 "00068" 这种），或与 ticker 同源 → 视为重复
+    if raw.isdigit() or raw_norm == ticker_norm:
+        return "未识别"
+    return raw[:max_len]
+
+
 def _tile_html(tile: dict) -> str:
     """Treemap tile. Hero 阈值 flex > 0.35 触发更大字号。"""
     ticker = _esc(tile.get("ticker", ""))
-    name = _esc(tile.get("cn_name") or tile.get("name", "")[:20])
+    name = _esc(_display_name(tile))
     amount = fmt_signed(tile["net"])
     bg = tile_color(tile["sign"], tile["flex"])
     flex_norm = tile.get("_flex_norm", tile["flex"])
@@ -139,7 +163,7 @@ def _tail_html(tail_items: list, sign: int) -> str:
     rows = []
     for t in tail_items:
         ticker = _esc(t.get("ticker", ""))
-        name = _esc(t.get("cn_name") or t.get("name", "")[:24])
+        name = _esc(_display_name(t, max_len=24))
         amount = fmt_signed(t["net"])
         rows.append(
             f'<div class="tail-row" style="border-left:4px solid {color}">'

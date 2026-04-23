@@ -31,7 +31,11 @@ def fetch_one(country, label_cn, label_en, start, end):
         return {"market": label_cn, "market_en": label_en, "code": country, "data": None}
 
     def make_row(r):
-        ticker, cn_name = format_display(r["KOR_SECN_NM"], is_hk=(country == "HK"))
+        ticker, cn_name = format_display(
+            r["KOR_SECN_NM"],
+            isin=r.get("ISIN", ""),
+            is_hk=(country == "HK"),
+        )
         return {
             "name": r["KOR_SECN_NM"],
             "ticker": ticker,

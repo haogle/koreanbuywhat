@@ -86,7 +86,11 @@ def generate_and_send():
         weekly_net = df["net"].sum()
 
         def make_row(r):
-            ticker, cn_name = format_display(r["KOR_SECN_NM"])
+            ticker, cn_name = format_display(
+                r["KOR_SECN_NM"],
+                isin=r.get("ISIN", ""),
+                is_hk=(country == "HK"),
+            )
             return {
                 "ticker": ticker,
                 "cn_name": cn_name,

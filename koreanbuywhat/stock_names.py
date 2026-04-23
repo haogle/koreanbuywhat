@@ -1,6 +1,16 @@
 """
-美股 Ticker ↔ 中文名 映射 + SEIBro 英文名 → Ticker 转换
+美股 / 港股 Ticker ↔ 中文名 映射 + SEIBro 英文名 → Ticker 转换
+
+解析优先级：
+  1. ISIN 直查  (resolve_by_isin)       — 最可靠，尤其覆盖开曼/百慕大注册的港股
+  2. 名称关键词 (resolve_ticker)          — 次之，依赖 NAME_TO_TICKER
+  3. 安全兜底  (format_display fallback) — 未识别时走占位符，不复用脏数据
+未命中时通过 _log_missing 落盘到 _missing_names.log，方便后续补表。
 """
+
+import datetime
+import os
+from pathlib import Path
 
 # SEIBro KOR_SECN_NM (英文全名) → Ticker
 # 用名称关键词匹配，覆盖 SEIBro 常见的命名方式
@@ -351,8 +361,88 @@ TICKER_TO_CN = {
 }
 
 
+# ── ISIN → 港股 ticker 映射 ──────────────────────────────────────────────────
+# 开曼 / 百慕大 / 英属维尔京等离岸注册的港股，ISIN 不以 HK 开头，必须查表。
+# 本港注册公司（ISIN 以 HK0000 开头）可通过 resolve_by_isin 中的规则自动还原。
+# 缺失条目会自动记录到 _missing_names.log，按周补进即可。
+ISIN_TO_HK = {
+    # 科技 / 互联网（多为开曼注册）
+    "KYG875721634": ("0700", "腾讯控股"),
+    "KYG017191142": ("9988", "阿里巴巴"),
+    "KYG596691041": ("3690", "美团"),
+    "KYG8208B1014": ("9618", "京东集团"),
+    "KYG9830T1067": ("1810", "小米集团"),
+    "KYG1238E1070": ("9888", "百度集团"),
+    "KYG6427A1022": ("9999", "网易"),
+    "KYG5260B1098": ("1024", "快手"),
+    "KYG1098L1081": ("9626", "哔哩哔哩"),
+    "KYG2107Y1052": ("9961", "携程集团"),
+    "KYG596651045": ("9992", "泡泡玛特"),
+    "KYG211261020": ("9868", "小鹏汽车"),
+    "KYG6625A1658": ("9866", "蔚来"),
+    "KYG5002G1126": ("2015", "理想汽车"),
+    "KYG2121W1039": ("9863", "零跑汽车"),
+
+    # 半导体 / 硬件（含图里漏掉的 Montage）
+    "KYG2113L1068": ("1521", "澜起科技"),   # MONTAGE TECHNOLOGY
+    "KYG8020E1199": ("0981", "中芯国际"),
+    "KYG4634J1013": ("1347", "华虹半导体"),
+    "KYG8586D1097": ("2382", "舜宇光学"),
+    "KYG5257Y1089": ("0992", "联想集团"),
+
+    # 本港 / 中资股（ISIN 以 HK0000 开头也收录典型样本）
+    "HK0000214814": ("0068", "新华通讯社"),  # SEIBro 有时以 "00068" 纯数字返回
+    "HK0000056129": ("3986", "中国铝业"),    # CHALCO H 股
+    "HK0000055878": ("2208", "新疆金风科技"),
+    "HK0000214921": ("0836", "华润电力"),
+    "HK0001000014": ("0001", "长江和记"),
+
+    # 金融 / 保险
+    "CNE1000003X6": ("2318", "中国平安"),
+    "CNE1000002L3": ("1398", "工商银行"),
+    "CNE1000002H1": ("0939", "建设银行"),
+}
+
+
+# ── Missing-mapping log（质量漏斗）─────────────────────────────────────────
+_MISSING_LOG = Path(__file__).parent / "_missing_names.log"
+
+
+def _log_missing(isin: str, secn_name: str, market: str = "HK") -> None:
+    """未识别的标的落盘，运营可在下周海报前补表。环境变量 NO_MISSING_LOG=1 可关闭。"""
+    if os.environ.get("NO_MISSING_LOG"):
+        return
+    try:
+        line = f"{datetime.date.today().isoformat()}\t{market}\t{isin}\t{secn_name}\n"
+        with open(_MISSING_LOG, "a", encoding="utf-8") as f:
+            f.write(line)
+    except OSError:
+        pass  # 日志失败不阻断主流程
+
+
+# ── 解析函数 ────────────────────────────────────────────────────────────────
+
+def resolve_by_isin(isin: str) -> tuple:
+    """
+    ISIN → (ticker, cn_name)。命中返回具体值，未命中返回 (None, "")。
+    规则：
+      a) 查 ISIN_TO_HK 显式表
+      b) 本港注册 (ISIN 以 HK0000 开头，12 位) 可从 ISIN 中段还原 5 位代码
+    """
+    if not isin:
+        return (None, "")
+    isin = isin.strip().upper()
+    if isin in ISIN_TO_HK:
+        return ISIN_TO_HK[isin]
+    # 本港注册规则：HK0000 + 5位短代码 + 1位校验
+    if isin.startswith("HK0000") and len(isin) == 12:
+        code = isin[6:11].lstrip("0").zfill(4) or "0001"
+        return (code, TICKER_TO_CN.get(code, "") or TICKER_TO_CN.get(code.zfill(5), ""))
+    return (None, "")
+
+
 def resolve_ticker(secn_name: str, is_hk: bool = False) -> str:
-    """从 SEIBro 英文名解析出 Ticker"""
+    """从 SEIBro 英文名解析出 Ticker（作为 ISIN 解析失败的 fallback）"""
     upper = secn_name.upper().strip()
     # 按关键词长度降序匹配，避免短关键词误匹配
     for keyword in sorted(NAME_TO_TICKER, key=len, reverse=True):
@@ -364,22 +454,51 @@ def resolve_ticker(secn_name: str, is_hk: bool = False) -> str:
 
 def resolve_cn_name(ticker: str) -> str:
     """Ticker → 中文名，找不到则返回空"""
-    return TICKER_TO_CN.get(ticker, "")
+    return TICKER_TO_CN.get(ticker, "") or TICKER_TO_CN.get(ticker.zfill(4), "")
 
 
-def format_display(secn_name: str, is_hk: bool = False) -> tuple:
+def _fmt_hk_display(ticker: str) -> str:
+    """港股代码统一成 '0700.HK' 格式（4 位数字 + .HK）"""
+    if ticker.isdigit():
+        return f"{ticker.zfill(4)}.HK"
+    return ticker
+
+
+def format_display(secn_name: str, isin: str = "", is_hk: bool = False) -> tuple:
     """
-    SEIBro 英文名 → (display_ticker, chinese_name)
-    美股: ("TSLA", "特斯拉")
-    港股: ("0700.HK", "腾讯")
+    SEIBro 行 → (display_ticker, chinese_name)
+      美股: ("TSLA", "特斯拉")
+      港股: ("0700.HK", "腾讯控股")
+      未识别港股: ("HK:XXXXXX", "")  — XXXXXX 是 ISIN 尾 6 位，绝不会再出现"00068/00068"这种双重显示
+
+    参数：
+      secn_name: SEIBro 返回的 KOR_SECN_NM（英文或韩文名）
+      isin:      SEIBro 返回的 ISIN（强烈建议传入，港股场景下是主键）
+      is_hk:     是否港股市场
     """
+    secn_name = (secn_name or "").strip()
+
+    # ① ISIN 直查（最可靠）
+    if isin:
+        ticker, cn = resolve_by_isin(isin)
+        if ticker:
+            return (_fmt_hk_display(ticker) if is_hk else ticker), cn
+
+    # ② 名称关键词匹配
     ticker = resolve_ticker(secn_name, is_hk)
     cn = resolve_cn_name(ticker)
 
-    # 港股: 纯数字 ticker 加 .HK 后缀显示
-    if is_hk and ticker.isdigit():
-        display = f"{ticker}.HK"
-    else:
-        display = ticker
+    # 命中：走正常显示
+    hit = bool(cn) or (ticker and ticker in TICKER_TO_CN) or (
+        secn_name and ticker != secn_name.upper().split()[0] if secn_name else False
+    )
+    if hit:
+        return (_fmt_hk_display(ticker) if is_hk else ticker), cn
 
-    return display, cn
+    # ③ 兜底：标记未识别，落盘日志，显示干净占位符
+    _log_missing(isin or "", secn_name, market="HK" if is_hk else "US")
+    if is_hk:
+        tail = (isin[-6:] if isin else ticker[:6]) or "??????"
+        return f"HK:{tail}", ""
+    # 美股未识别：保留解析出的第一个英文单词作 ticker，中文名留空（前端不会重复显示）
+    return ticker or "—", ""
