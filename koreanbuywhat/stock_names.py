@@ -60,6 +60,13 @@ NAME_TO_TICKER = {
     "RIVIAN": "RIVN",
     "LUCID": "LCID",
     "SNDSK CRP": "WDC",
+    "EXXON MOBIL": "XOM",
+    "APPLOVIN": "APP",
+    "COREWEAVE": "CRWV",
+    "MARVELL TECHNOLOGY": "MRVL",
+    "TERADYNE": "TER",
+    "TOWER SEMICONDUCTOR": "TSEM",
+    "VIAVI SOLUTIONS": "VIAV", "VIAVI": "VIAV",
     # ETF
     "INVESCO QQQ": "QQQ",
     "INVESCO NASDAQ 100": "QQQM",
@@ -103,6 +110,8 @@ NAME_TO_TICKER = {
     "VS TRUST 2X LONG VIX": "UVIX",
     "NEOS NASDAQ 100 HIGH INCOME": "QQQI",
     "T-REX 2X LONG MSTR": "MSTU",
+    "PROSHARES ULTRASHORT SILVER": "ZSL",
+    "VANECK JP MORGAN EM LOCAL CURRENCY BOND": "EMLC", "VANECK JP MORGAN EM LOCAL": "EMLC",
     # ── 港股 (HK) ──
     # 科技 / 互联网
     "TENCENT HOLDINGS": "0700", "ALIBABA GROUP": "9988", "MEITUAN": "3690",
@@ -125,6 +134,8 @@ NAME_TO_TICKER = {
     # AI 独角兽（港股 2026 IPO）
     "MINIMAX": "0100", "XIYU TECHNOLOGY": "0100",
     "ZHIPU": "2513", "ZHIPU AI": "2513",
+    "CHINA ENERGY ENGINEERING": "3996",
+    "SMART CITY DEVELOPMENT": "8268",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -245,6 +256,13 @@ TICKER_TO_CN = {
     # 传统
     "BRK.B": "伯克希尔", "UNH": "联合健康", "O": "Realty房产",
     "OXY": "西方石油", "WDC": "西部数据",
+    "XOM": "埃克森美孚",
+    # AI / 基础设施 / 半导体设备
+    "APP": "AppLovin", "CRWV": "CoreWeave",
+    "TER": "泰瑞达", "TSEM": "Tower半导体",
+    "VIAV": "Viavi光通信",
+    # 债 / 杠杆 ETF
+    "ZSL": "白银2倍做空", "EMLC": "新兴市场本币债ETF",
     # 汽车
     "RIVN": "Rivian", "LCID": "Lucid",
     # ETF
@@ -268,7 +286,7 @@ TICKER_TO_CN = {
     "RGTI.S2X": "Rigetti做空2倍",
     "ETHU": "以太坊2倍做多", "UVIX": "VIX 2倍做多",
     "QQQI": "纳指高收益ETF", "MSTU": "MSTR 2倍做多",
-    "MRVL": "Marvell 2倍",
+    "MRVL": "迈威尔科技",
     "LITE": "Lumentum光通信",
     # ── 港股 ──
     # 科技 / 互联网
@@ -287,6 +305,7 @@ TICKER_TO_CN = {
     "0068": "群核科技", "3986": "兆易创新",
     "1276": "恒瑞医药", "6809": "澜起科技",
     "0100": "MiniMax", "2513": "智谱科技",
+    "3996": "中国能建", "8268": "智慧城市发展",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
