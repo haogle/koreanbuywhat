@@ -112,6 +112,7 @@ NAME_TO_TICKER = {
     "T-REX 2X LONG MSTR": "MSTU",
     "PROSHARES ULTRASHORT SILVER": "ZSL",
     "VANECK JP MORGAN EM LOCAL CURRENCY BOND": "EMLC", "VANECK JP MORGAN EM LOCAL": "EMLC",
+    "ROUNDHILL MEMORY": "DRAM",
     # ── 港股 (HK) ──
     # 科技 / 互联网
     "TENCENT HOLDINGS": "0700", "ALIBABA GROUP": "9988", "MEITUAN": "3690",
@@ -136,6 +137,10 @@ NAME_TO_TICKER = {
     "ZHIPU": "2513", "ZHIPU AI": "2513",
     "CHINA ENERGY ENGINEERING": "3996",
     "SMART CITY DEVELOPMENT": "8268",
+    "PREMIA CHINA STAR50": "3151",
+    "GUANZE MEDICAL": "2427",
+    "VICTORY GIANT": "2476",
+    "WELLCELL": "2477", "WELL HLDGPAR": "2477",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -263,6 +268,7 @@ TICKER_TO_CN = {
     "VIAV": "Viavi光通信",
     # 债 / 杠杆 ETF
     "ZSL": "白银2倍做空", "EMLC": "新兴市场本币债ETF",
+    "DRAM": "内存半导体ETF",
     # 汽车
     "RIVN": "Rivian", "LCID": "Lucid",
     # ETF
@@ -306,6 +312,8 @@ TICKER_TO_CN = {
     "1276": "恒瑞医药", "6809": "澜起科技",
     "0100": "MiniMax", "2513": "智谱科技",
     "3996": "中国能建", "8268": "智慧城市发展",
+    "3151": "中国科创板50ETF", "2427": "冠泽医疗",
+    "2476": "胜宏科技", "2477": "WellCell",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -430,6 +438,11 @@ ISIN_TO_HK = {
     "KYG5860M1024": ("0068", "群核科技"),   # Manycore Tech, IPO 2026-04-17
     "KYG6181S1093": ("0100", "MiniMax"),    # 稀宇科技 (SEIBro 常以 "00100" 占位)
     "CNE100007DH9": ("2513", "智谱科技"),   # Zhipu AI
+    "CNE100007JY1": ("2476", "胜宏科技"),   # Victory Giant Tech, IPO 2026-04-21
+    "KYG4315D1060": ("2427", "冠泽医疗"),   # Guanze Medical
+    "KYG9541D1198": ("2477", "WellCell"),   # Wellcell Hldg Co (2024 listing)
+    "KYG9541D1354": ("2477", "WellCell"),   # Wellcell 另一 ISIN (同公司，不同系列)
+    "HK0000761400": ("3151", "中国科创板50ETF"),  # Premia STAR50 HKD counter
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。
