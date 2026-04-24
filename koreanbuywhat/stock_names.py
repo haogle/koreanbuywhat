@@ -116,6 +116,12 @@ NAME_TO_TICKER = {
     "LI AUTO": "2015", "GEELY AUTOMOBILE": "0175",
     "BYD CO": "1211", "BYD ELECTRONIC": "0285",
     "LEAPMOTOR": "9863", "YADEA GROUP": "1585",
+    "CHINA STAR ENTERTAINMENT": "0326",
+    "AIA GROUP": "1299",
+    "MANYCORE TECH": "0068",
+    "GIGADEVICE": "3986",
+    "HENGRUI PHARMA": "1276", "JIANGSU HENGRUI": "1276",
+    "MONTAGE TECHNOLOGY": "6809",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -274,6 +280,9 @@ TICKER_TO_CN = {
     "2015": "理想汽车", "0175": "吉利汽车",
     "1211": "比亚迪", "0285": "比亚迪电子",
     "9863": "零跑汽车", "1585": "雅迪控股",
+    "0326": "中国星集团", "1299": "友邦保险",
+    "0068": "群核科技", "3986": "兆易创新",
+    "1276": "恒瑞医药", "6809": "澜起科技",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -397,12 +406,8 @@ ISIN_TO_HK = {
     # 新上市 / IPO
     "KYG5860M1024": ("0068", "群核科技"),   # Manycore Tech, IPO 2026-04-17
 
-    # 本港 / 中资股（ISIN 以 HK0000 开头也收录典型样本）
-    "HK0000214814": ("0068", "新华通讯社"),  # SEIBro 有时以 "00068" 纯数字返回
-    "HK0000056129": ("3986", "中国铝业"),    # CHALCO H 股
-    "HK0000055878": ("2208", "新疆金风科技"),
-    "HK0000214921": ("0836", "华润电力"),
-    "HK0001000014": ("0001", "长江和记"),
+    # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
+    # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。
 
     # 金融 / 保险
     "CNE1000003X6": ("2318", "中国平安"),
@@ -432,19 +437,14 @@ def _log_missing(isin: str, secn_name: str, market: str = "HK") -> None:
 def resolve_by_isin(isin: str) -> tuple:
     """
     ISIN → (ticker, cn_name)。命中返回具体值，未命中返回 (None, "")。
-    规则：
-      a) 查 ISIN_TO_HK 显式表
-      b) 本港注册 (ISIN 以 HK0000 开头，12 位) 可从 ISIN 中段还原 5 位代码
+    只走显式映射表 —— 试图从 ISIN 中段反推 HK 代码会产生虚假匹配
+    (e.g. HK0000218211 中段 21821 并不对应 HUA HONG 的 1347)。
     """
     if not isin:
         return (None, "")
     isin = isin.strip().upper()
     if isin in ISIN_TO_HK:
         return ISIN_TO_HK[isin]
-    # 本港注册规则：HK0000 + 5位短代码 + 1位校验
-    if isin.startswith("HK0000") and len(isin) == 12:
-        code = isin[6:11].lstrip("0").zfill(4) or "0001"
-        return (code, TICKER_TO_CN.get(code, "") or TICKER_TO_CN.get(code.zfill(5), ""))
     return (None, "")
 
 
