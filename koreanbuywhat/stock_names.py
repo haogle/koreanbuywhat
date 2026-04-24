@@ -122,6 +122,9 @@ NAME_TO_TICKER = {
     "GIGADEVICE": "3986",
     "HENGRUI PHARMA": "1276", "JIANGSU HENGRUI": "1276",
     "MONTAGE TECHNOLOGY": "6809",
+    # AI 独角兽（港股 2026 IPO）
+    "MINIMAX": "0100", "XIYU TECHNOLOGY": "0100",
+    "ZHIPU": "2513", "ZHIPU AI": "2513",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -283,6 +286,7 @@ TICKER_TO_CN = {
     "0326": "中国星集团", "1299": "友邦保险",
     "0068": "群核科技", "3986": "兆易创新",
     "1276": "恒瑞医药", "6809": "澜起科技",
+    "0100": "MiniMax", "2513": "智谱科技",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -403,8 +407,10 @@ ISIN_TO_HK = {
     # 医药
     "CNE100006XS6": ("1276", "恒瑞医药"),   # Jiangsu Hengrui Pharmaceuticals
 
-    # 新上市 / IPO
+    # 新上市 / IPO (2026 AI 独角兽潮)
     "KYG5860M1024": ("0068", "群核科技"),   # Manycore Tech, IPO 2026-04-17
+    "KYG6181S1093": ("0100", "MiniMax"),    # 稀宇科技 (SEIBro 常以 "00100" 占位)
+    "CNE100007DH9": ("2513", "智谱科技"),   # Zhipu AI
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。
