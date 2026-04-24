@@ -383,12 +383,19 @@ ISIN_TO_HK = {
     "KYG5002G1126": ("2015", "理想汽车"),
     "KYG2121W1039": ("9863", "零跑汽车"),
 
-    # 半导体 / 硬件（含图里漏掉的 Montage）
-    "KYG2113L1068": ("1521", "澜起科技"),   # MONTAGE TECHNOLOGY
+    # 半导体 / 硬件
+    "CNE100007DX6": ("6809", "澜起科技"),   # MONTAGE TECHNOLOGY, H-share listed Feb 2026
+    "CNE100007DJ5": ("3986", "兆易创新"),   # GigaDevice Semiconductor
     "KYG8020E1199": ("0981", "中芯国际"),
     "KYG4634J1013": ("1347", "华虹半导体"),
     "KYG8586D1097": ("2382", "舜宇光学"),
     "KYG5257Y1089": ("0992", "联想集团"),
+
+    # 医药
+    "CNE100006XS6": ("1276", "恒瑞医药"),   # Jiangsu Hengrui Pharmaceuticals
+
+    # 新上市 / IPO
+    "KYG5860M1024": ("0068", "群核科技"),   # Manycore Tech, IPO 2026-04-17
 
     # 本港 / 中资股（ISIN 以 HK0000 开头也收录典型样本）
     "HK0000214814": ("0068", "新华通讯社"),  # SEIBro 有时以 "00068" 纯数字返回
@@ -484,7 +491,14 @@ def format_display(secn_name: str, isin: str = "", is_hk: bool = False) -> tuple
         if ticker:
             return (_fmt_hk_display(ticker) if is_hk else ticker), cn
 
-    # ② 名称关键词匹配
+    # ② 港股特例：SEIBro 偶尔直接返回 4-5 位纯数字（"00068"、"03986"），
+    #    这本身就是 HK 代码。直接用，别再走兜底占位符。
+    if is_hk and secn_name.isdigit() and 3 <= len(secn_name) <= 5:
+        ticker = secn_name.lstrip("0") or "0"
+        cn = resolve_cn_name(ticker)
+        return _fmt_hk_display(ticker), cn
+
+    # ③ 名称关键词匹配
     ticker = resolve_ticker(secn_name, is_hk)
     cn = resolve_cn_name(ticker)
 
