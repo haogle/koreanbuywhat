@@ -67,6 +67,8 @@ NAME_TO_TICKER = {
     "TERADYNE": "TER",
     "TOWER SEMICONDUCTOR": "TSEM",
     "VIAVI SOLUTIONS": "VIAV", "VIAVI": "VIAV",
+    "AST SPACEMOBILE": "ASTS",
+    "ROBINHOOD MARKETS": "HOOD", "ROBINHOOD": "HOOD",
     # ETF
     "INVESCO QQQ": "QQQ",
     "INVESCO NASDAQ 100": "QQQM",
@@ -266,6 +268,7 @@ TICKER_TO_CN = {
     "APP": "AppLovin", "CRWV": "CoreWeave",
     "TER": "泰瑞达", "TSEM": "Tower半导体",
     "VIAV": "Viavi光通信",
+    "ASTS": "AST卫星通信", "HOOD": "Robinhood",
     # 债 / 杠杆 ETF
     "ZSL": "白银2倍做空", "EMLC": "新兴市场本币债ETF",
     "DRAM": "内存半导体ETF",
