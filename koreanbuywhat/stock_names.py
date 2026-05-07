@@ -143,6 +143,7 @@ NAME_TO_TICKER = {
     "GUANZE MEDICAL": "2427",
     "VICTORY GIANT": "2476",
     "WELLCELL": "2477", "WELL HLDGPAR": "2477",
+    "BIREN": "6082", "SHANGHAI BIREN": "6082",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -316,7 +317,8 @@ TICKER_TO_CN = {
     "0100": "MiniMax", "2513": "智谱科技",
     "3996": "中国能建", "8268": "智慧城市发展",
     "3151": "中国科创板50ETF", "2427": "冠泽医疗",
-    "2476": "胜宏科技", "2477": "WellCell",
+    "2476": "胜宏科技", "2477": "经纬天地",
+    "6082": "壁仞科技",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -443,9 +445,10 @@ ISIN_TO_HK = {
     "CNE100007DH9": ("2513", "智谱科技"),   # Zhipu AI
     "CNE100007JY1": ("2476", "胜宏科技"),   # Victory Giant Tech, IPO 2026-04-21
     "KYG4315D1060": ("2427", "冠泽医疗"),   # Guanze Medical
-    "KYG9541D1198": ("2477", "WellCell"),   # Wellcell Hldg Co (2024 listing)
-    "KYG9541D1354": ("2477", "WellCell"),   # Wellcell 另一 ISIN (同公司，不同系列)
+    "KYG9541D1198": ("2477", "经纬天地"),   # WellCell Holdings (运营主体: 广东经纬天地科技)
+    "KYG9541D1354": ("2477", "经纬天地"),   # WellCell 另一 ISIN (同公司，不同系列)
     "HK0000761400": ("3151", "中国科创板50ETF"),  # Premia STAR50 HKD counter
+    "CNE100007DD8": ("6082", "壁仞科技"),   # Shanghai Biren Tech, 2026-01-02 IPO 国产GPU第一股
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。
