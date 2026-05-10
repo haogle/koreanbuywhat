@@ -144,6 +144,9 @@ NAME_TO_TICKER = {
     "VICTORY GIANT": "2476",
     "WELLCELL": "2477", "WELL HLDGPAR": "2477",
     "BIREN": "6082", "SHANGHAI BIREN": "6082",
+    "SHANGHAI XIZHI": "1879", "XIZHI TECHNOLOGY": "1879",
+    "NEW GONOW": "0805",
+    "CIG SHANGHAI": "6166", "CAMBRIDGE INDUSTRIES": "6166",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -319,6 +322,7 @@ TICKER_TO_CN = {
     "3151": "中国科创板50ETF", "2427": "冠泽医疗",
     "2476": "胜宏科技", "2477": "经纬天地",
     "6082": "壁仞科技",
+    "1879": "曦智科技", "0805": "新高诺房车", "6166": "剑桥科技",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -449,6 +453,9 @@ ISIN_TO_HK = {
     "KYG9541D1354": ("2477", "经纬天地"),   # WellCell 另一 ISIN (同公司，不同系列)
     "HK0000761400": ("3151", "中国科创板50ETF"),  # Premia STAR50 HKD counter
     "CNE100007DD8": ("6082", "壁仞科技"),   # Shanghai Biren Tech, 2026-01-02 IPO 国产GPU第一股
+    "CNE100007KM4": ("1879", "曦智科技"),   # Shanghai Xizhi Tech, 2026-04-28 IPO 全球首家光计算 AI 上市
+    "KYG6471S1084": ("0805", "新高诺房车"), # New Gonow Recreational Vehicles
+    "CNE1000075T2": ("6166", "剑桥科技"),   # CIG Shanghai (Cambridge Industries Group)
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。
