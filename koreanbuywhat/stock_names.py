@@ -261,7 +261,7 @@ TICKER_TO_CN = {
     "SOFI": "SoFi", "DOCN": "DigitalOcean", "AAOI": "应用光电",
     # AI / 量子 / 新兴
     "IONQ": "IonQ量子", "RKLB": "火箭实验室", "JOBY": "Joby航空",
-    "SMR": "NuScale核电", "PL": "Planet卫星", "CIRC": "Circle稳定币",
+    "SMR": "NuScale核电", "PL": "Planet卫星", "CIRC": "Circle",
     "BIMI": "BitMine矿业", "IREN": "Iris能源", "MSTR": "MicroStrategy",
     "YNDX": "Yandex",
     # 传统
