@@ -115,6 +115,7 @@ NAME_TO_TICKER = {
     "PROSHARES ULTRASHORT SILVER": "ZSL",
     "VANECK JP MORGAN EM LOCAL CURRENCY BOND": "EMLC", "VANECK JP MORGAN EM LOCAL": "EMLC",
     "ROUNDHILL MEMORY": "DRAM",
+    "TEMA SPACE INNOVATORS": "NASA", "SPACE INNOVATORS": "NASA",
     # ── 港股 (HK) ──
     # 科技 / 互联网
     "TENCENT HOLDINGS": "0700", "ALIBABA GROUP": "9988", "MEITUAN": "3690",
@@ -149,6 +150,8 @@ NAME_TO_TICKER = {
     "CIG SHANGHAI": "6166", "CAMBRIDGE INDUSTRIES": "6166",
     "METIS TECHBIO": "7666", "METIS": "7666",
     "JINHAI MED": "2225", "JINHAI MEDICAL": "2225",
+    "YANGTZE OPTICAL": "6869",
+    "INNOSCIENCE": "2577",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -277,7 +280,7 @@ TICKER_TO_CN = {
     "ASTS": "AST卫星通信", "HOOD": "Robinhood",
     # 债 / 杠杆 ETF
     "ZSL": "白银2倍做空", "EMLC": "新兴市场本币债ETF",
-    "DRAM": "内存半导体ETF",
+    "DRAM": "内存半导体ETF", "NASA": "太空创新ETF",
     # 汽车
     "RIVN": "Rivian", "LCID": "Lucid",
     # ETF
@@ -326,6 +329,7 @@ TICKER_TO_CN = {
     "6082": "壁仞科技",
     "1879": "曦智科技", "0805": "新高诺房车", "6166": "剑桥科技",
     "7666": "剂泰科技", "2225": "今海医疗",
+    "6869": "长飞光纤", "2577": "英诺赛科",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -461,6 +465,8 @@ ISIN_TO_HK = {
     "CNE1000075T2": ("6166", "剑桥科技"),   # CIG Shanghai (Cambridge Industries Group)
     "CNE100007LD1": ("7666", "剂泰科技"),   # METiS TechBio, 2026-05-13 IPO 全球首家 AI 药物递送上市
     "KYG5140Y1162": ("2225", "今海医疗"),   # Jinhai Medical Technology (前 Jinhai International)
+    "CNE100001T72": ("6869", "长飞光纤"),   # Yangtze Optical Fibre and Cable (A+H)
+    "CNE100006QG5": ("2577", "英诺赛科"),   # Innoscience, GaN 第三代半导体
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。
