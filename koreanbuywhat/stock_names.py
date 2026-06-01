@@ -152,6 +152,7 @@ NAME_TO_TICKER = {
     "JINHAI MED": "2225", "JINHAI MEDICAL": "2225",
     "YANGTZE OPTICAL": "6869",
     "INNOSCIENCE": "2577",
+    "SOFTMEDX": "0648",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -330,6 +331,7 @@ TICKER_TO_CN = {
     "1879": "曦智科技", "0805": "新高诺房车", "6166": "剑桥科技",
     "7666": "剂泰科技", "2225": "今海医疗",
     "6869": "长飞光纤", "2577": "英诺赛科",
+    "0648": "软美健康",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -467,6 +469,8 @@ ISIN_TO_HK = {
     "KYG5140Y1162": ("2225", "今海医疗"),   # Jinhai Medical Technology (前 Jinhai International)
     "CNE100001T72": ("6869", "长飞光纤"),   # Yangtze Optical Fibre and Cable (A+H)
     "CNE100006QG5": ("2577", "英诺赛科"),   # Innoscience, GaN 第三代半导体
+    "HK0001311718": ("0648", "软美健康"),   # SoftMedx Healthcare (new SPLR scrip)
+    "HK0000375797": ("0648", "软美健康"),   # SoftMedx Healthcare (legacy ISIN)
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。
