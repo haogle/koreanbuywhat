@@ -155,6 +155,8 @@ NAME_TO_TICKER = {
     "SOFTMEDX": "0648",
     "CSOP STAR 50": "3109", "CSOP STAR50": "3109",
     "ILUVATAR COREX": "9903", "ILUVATAR": "9903",
+    "SHANGHAI MICROPORT MEDBOT": "2252", "MICROPORT MEDBOT": "2252",
+    "DEEPEXI": "1384", "DEEPEXI TECH": "1384",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -335,6 +337,7 @@ TICKER_TO_CN = {
     "6869": "长飞光纤", "2577": "英诺赛科",
     "0648": "软美健康",
     "3109": "CSOP科创板50ETF", "9903": "天数智芯",
+    "2252": "微创医疗机器人", "1384": "滴普科技",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -476,6 +479,8 @@ ISIN_TO_HK = {
     "HK0000375797": ("0648", "软美健康"),   # SoftMedx Healthcare (legacy ISIN)
     "HK0000702735": ("3109", "CSOP科创板50ETF"),  # CSOP STAR 50 Index ETF, HK 第一只科创板 ETF
     "CNE100007DV0": ("9903", "天数智芯"),   # Iluvatar CoreX, 2026-01-08 IPO 国产 GPGPU
+    "CNE100004QP1": ("2252", "微创医疗机器人"),  # Shanghai MicroPort MedBot (Toumai 腔镜机器人)
+    "CNE1000076K9": ("1384", "滴普科技"),   # Deepexi Technology, 2025-10-28 IPO AI 企业服务
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。
