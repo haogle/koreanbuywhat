@@ -116,6 +116,7 @@ NAME_TO_TICKER = {
     "VANECK JP MORGAN EM LOCAL CURRENCY BOND": "EMLC", "VANECK JP MORGAN EM LOCAL": "EMLC",
     "ROUNDHILL MEMORY": "DRAM",
     "TEMA SPACE INNOVATORS": "NASA", "SPACE INNOVATORS": "NASA",
+    "SPACE EXPLORATION TECHN": "SPCX", "SPACE EXPLORATION": "SPCX", "SPACEX": "SPCX",
     # ── 港股 (HK) ──
     # 科技 / 互联网
     "TENCENT HOLDINGS": "0700", "ALIBABA GROUP": "9988", "MEITUAN": "3690",
@@ -157,6 +158,8 @@ NAME_TO_TICKER = {
     "ILUVATAR COREX": "9903", "ILUVATAR": "9903",
     "SHANGHAI MICROPORT MEDBOT": "2252", "MICROPORT MEDBOT": "2252",
     "DEEPEXI": "1384", "DEEPEXI TECH": "1384",
+    "CMBC CAPITAL": "1141",
+    "NATIONAL UNITED RESOURCES": "0254",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -286,6 +289,7 @@ TICKER_TO_CN = {
     # 债 / 杠杆 ETF
     "ZSL": "白银2倍做空", "EMLC": "新兴市场本币债ETF",
     "DRAM": "内存半导体ETF", "NASA": "太空创新ETF",
+    "SPCX": "SpaceX太空探索",
     # 汽车
     "RIVN": "Rivian", "LCID": "Lucid",
     # ETF
@@ -338,6 +342,7 @@ TICKER_TO_CN = {
     "0648": "软美健康",
     "3109": "CSOP科创板50ETF", "9903": "天数智芯",
     "2252": "微创医疗机器人", "1384": "滴普科技",
+    "1141": "民银资本控股", "0254": "国家联合资源",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -481,6 +486,8 @@ ISIN_TO_HK = {
     "CNE100007DV0": ("9903", "天数智芯"),   # Iluvatar CoreX, 2026-01-08 IPO 国产 GPGPU
     "CNE100004QP1": ("2252", "微创医疗机器人"),  # Shanghai MicroPort MedBot (Toumai 腔镜机器人)
     "CNE1000076K9": ("1384", "滴普科技"),   # Deepexi Technology, 2025-10-28 IPO AI 企业服务
+    "BMG2233G2014": ("1141", "民银资本控股"),  # CMBC Capital Holdings (formerly Skyway Securities)
+    "HK0001185096": ("0254", "国家联合资源"),  # National United Resources Holdings (car rental)
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。

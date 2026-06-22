@@ -11,6 +11,7 @@
 """
 
 import os
+import time
 import requests
 from pathlib import Path
 from main import fetch_week, last_week_range
@@ -18,12 +19,13 @@ from poster import build_poster_html, render_html_to_image
 from stock_names import format_display
 from social_copy import build_social_text
 
-FEISHU_WEBHOOK = os.environ.get(
-    "FEISHU_WEBHOOK",
-    "https://open.feishu.cn/open-apis/bot/v2/hook/053e6906-8d74-4330-a7b4-aa481ab51db6",
-)
-FEISHU_APP_ID = os.environ.get("FEISHU_APP_ID", "cli_a99f669817291013")
-FEISHU_APP_SECRET = os.environ.get("FEISHU_APP_SECRET", "2NhLMbL0ZvkydsxXovkT7entpln0Hryl")
+# 配置改为强制走环境变量（避免 secret 入库）。本地开发可写入 .env 或 shell rc：
+#   export FEISHU_WEBHOOK="https://open.feishu.cn/open-apis/bot/v2/hook/..."
+#   export FEISHU_APP_ID="cli_..."
+#   export FEISHU_APP_SECRET="..."
+FEISHU_WEBHOOK = os.environ["FEISHU_WEBHOOK"]
+FEISHU_APP_ID = os.environ["FEISHU_APP_ID"]
+FEISHU_APP_SECRET = os.environ["FEISHU_APP_SECRET"]
 
 MARKETS = [("US", "美股"), ("HK", "港股")]
 OUTPUT_DIR = Path(__file__).resolve().parent
@@ -31,8 +33,24 @@ OUTPUT_DIR = Path(__file__).resolve().parent
 
 # ── Feishu helpers ──────────────────────────────────────────────────────────
 
+def _request_with_retry(method, url, *, retries=3, backoff=2.0, **kwargs):
+    """对飞书 API 的瞬时网络/SSL 故障做指数退避重试。"""
+    last_exc = None
+    for attempt in range(retries):
+        try:
+            return requests.request(method, url, **kwargs)
+        except (requests.exceptions.SSLError,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout) as exc:
+            last_exc = exc
+            if attempt < retries - 1:
+                time.sleep(backoff ** attempt)
+    raise last_exc
+
+
 def get_tenant_token() -> str:
-    resp = requests.post(
+    resp = _request_with_retry(
+        "POST",
         "https://open.feishu.cn/open-apis/auth/v3/tenant_access_token/internal",
         json={"app_id": FEISHU_APP_ID, "app_secret": FEISHU_APP_SECRET},
         headers={"Content-Type": "application/json"},
@@ -47,7 +65,8 @@ def get_tenant_token() -> str:
 def upload_image(image_path: Path) -> str:
     token = get_tenant_token()
     with open(image_path, "rb") as f:
-        resp = requests.post(
+        resp = _request_with_retry(
+            "POST",
             "https://open.feishu.cn/open-apis/im/v1/images",
             headers={"Authorization": f"Bearer {token}"},
             files={"image": f},
@@ -61,7 +80,8 @@ def upload_image(image_path: Path) -> str:
 
 
 def send_image(image_key: str):
-    resp = requests.post(
+    resp = _request_with_retry(
+        "POST",
         FEISHU_WEBHOOK,
         json={"msg_type": "image", "content": {"image_key": image_key}},
         timeout=10,
@@ -75,7 +95,8 @@ def send_image(image_key: str):
 
 def send_text(text: str):
     """推送纯文本消息到飞书 webhook 群。"""
-    resp = requests.post(
+    resp = _request_with_retry(
+        "POST",
         FEISHU_WEBHOOK,
         json={"msg_type": "text", "content": {"text": text}},
         timeout=10,
