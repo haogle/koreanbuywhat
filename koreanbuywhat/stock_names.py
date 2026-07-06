@@ -115,6 +115,7 @@ NAME_TO_TICKER = {
     "PROSHARES ULTRASHORT SILVER": "ZSL",
     "VANECK JP MORGAN EM LOCAL CURRENCY BOND": "EMLC", "VANECK JP MORGAN EM LOCAL": "EMLC",
     "ROUNDHILL MEMORY": "DRAM",
+    "ROUNDHILL T-REX 2X LONG DRAM": "RAM", "T-REX 2X LONG DRAM": "RAM",
     "TEMA SPACE INNOVATORS": "NASA", "SPACE INNOVATORS": "NASA",
     "SPACE EXPLORATION TECHN": "SPCX", "SPACE EXPLORATION": "SPCX", "SPACEX": "SPCX",
     # ── 港股 (HK) ──
@@ -160,6 +161,8 @@ NAME_TO_TICKER = {
     "DEEPEXI": "1384", "DEEPEXI TECH": "1384",
     "CMBC CAPITAL": "1141",
     "NATIONAL UNITED RESOURCES": "0254",
+    "INVESTECH HOLDINGS": "1087", "INVESTECH": "1087",
+    "B AND D STRATEGIC": "1780", "RONGZUN INTERNATIONAL": "1780", "RONGZUN": "1780",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -289,7 +292,7 @@ TICKER_TO_CN = {
     # 债 / 杠杆 ETF
     "ZSL": "白银2倍做空", "EMLC": "新兴市场本币债ETF",
     "DRAM": "内存半导体ETF", "NASA": "太空创新ETF",
-    "SPCX": "SpaceX太空探索",
+    "SPCX": "SpaceX太空探索", "RAM": "DRAM 2倍做多",
     # 汽车
     "RIVN": "Rivian", "LCID": "Lucid",
     # ETF
@@ -343,6 +346,7 @@ TICKER_TO_CN = {
     "3109": "CSOP科创板50ETF", "9903": "天数智芯",
     "2252": "微创医疗机器人", "1384": "滴普科技",
     "1141": "民银资本控股", "0254": "国家联合资源",
+    "1087": "InvesTech控股", "1780": "荣尊国际控股",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -488,6 +492,8 @@ ISIN_TO_HK = {
     "CNE1000076K9": ("1384", "滴普科技"),   # Deepexi Technology, 2025-10-28 IPO AI 企业服务
     "BMG2233G2014": ("1141", "民银资本控股"),  # CMBC Capital Holdings (formerly Skyway Securities)
     "HK0001185096": ("0254", "国家联合资源"),  # National United Resources Holdings (car rental)
+    "BMG492321127": ("1087", "InvesTech控股"),  # InvesTech Holdings (network integration)
+    "KYG0700L1095": ("1780", "荣尊国际控股"),  # Rongzun Intl (前 B & D Strategic, 2024-04 改名)
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。
