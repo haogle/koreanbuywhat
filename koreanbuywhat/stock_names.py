@@ -163,6 +163,7 @@ NAME_TO_TICKER = {
     "NATIONAL UNITED RESOURCES": "0254",
     "INVESTECH HOLDINGS": "1087", "INVESTECH": "1087",
     "B AND D STRATEGIC": "1780", "RONGZUN INTERNATIONAL": "1780", "RONGZUN": "1780",
+    "LUXSHARE": "2475", "LUXSHARE PRECISION": "2475",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -347,6 +348,7 @@ TICKER_TO_CN = {
     "2252": "微创医疗机器人", "1384": "滴普科技",
     "1141": "民银资本控股", "0254": "国家联合资源",
     "1087": "InvesTech控股", "1780": "荣尊国际控股",
+    "2475": "立讯精密",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -494,6 +496,7 @@ ISIN_TO_HK = {
     "HK0001185096": ("0254", "国家联合资源"),  # National United Resources Holdings (car rental)
     "BMG492321127": ("1087", "InvesTech控股"),  # InvesTech Holdings (network integration)
     "KYG0700L1095": ("1780", "荣尊国际控股"),  # Rongzun Intl (前 B & D Strategic, 2024-04 改名)
+    "CNE100007QQ2": ("2475", "立讯精密"),  # Luxshare Precision H (2026-07-09 IPO, 年内最大)
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。
