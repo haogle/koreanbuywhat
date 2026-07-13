@@ -1,13 +1,26 @@
 name: Weekly Feishu Report
 
+# 每周日 00:00 日本时间（JST, UTC+9）自动运行 → 抓取上周美股/港股数据，
+# 渲染海报 + 生成社交文案，推送到飞书。
+#
+# 时区换算: 周日 00:00 JST = 周六 15:00 UTC → cron "0 15 * * 6"
+# (cron 使用 UTC；day-of-week 6 = 周六)
 on:
   schedule:
-    - cron: "0 2 * * 1"   # 每周一 UTC 02:00 = 北京时间 10:00
-  workflow_dispatch:        # 支持手动触发
+    - cron: "0 15 * * 6"
+  workflow_dispatch:        # 也支持在 GitHub Actions 页面手动触发
+
+# 避免同一时段并发重复运行
+concurrency:
+  group: weekly-feishu
+  cancel-in-progress: false
 
 jobs:
   notify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      TZ: Asia/Tokyo          # 让 Python datetime.now() 对齐日本时间
     defaults:
       run:
         working-directory: koreanbuywhat
@@ -25,7 +38,7 @@ jobs:
           pip install -r requirements.txt
           playwright install chromium --with-deps
 
-      - name: Generate posters and send to Feishu
+      - name: Generate posters + social copy and push to Feishu
         env:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
           FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
