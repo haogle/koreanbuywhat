@@ -69,6 +69,9 @@ NAME_TO_TICKER = {
     "VIAVI SOLUTIONS": "VIAV", "VIAVI": "VIAV",
     "AST SPACEMOBILE": "ASTS",
     "ROBINHOOD MARKETS": "HOOD", "ROBINHOOD": "HOOD",
+    "SK HYNIX": "HXSCL",
+    "APPLIED MATERIALS": "AMAT",
+    "BLOOM ENERGY": "BE",
     # ETF
     "INVESCO QQQ": "QQQ",
     "INVESCO NASDAQ 100": "QQQM",
@@ -164,6 +167,7 @@ NAME_TO_TICKER = {
     "INVESTECH HOLDINGS": "1087", "INVESTECH": "1087",
     "B AND D STRATEGIC": "1780", "RONGZUN INTERNATIONAL": "1780", "RONGZUN": "1780",
     "LUXSHARE": "2475", "LUXSHARE PRECISION": "2475",
+    "CHINA TIANRUI AUTOMOTIVE": "6162", "TIANRUI AUTOMOTIVE": "6162",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -290,6 +294,7 @@ TICKER_TO_CN = {
     "TER": "泰瑞达", "TSEM": "Tower半导体",
     "VIAV": "Viavi光通信",
     "ASTS": "AST卫星通信", "HOOD": "Robinhood",
+    "HXSCL": "SK海力士", "AMAT": "应用材料", "BE": "布鲁姆能源",
     # 债 / 杠杆 ETF
     "ZSL": "白银2倍做空", "EMLC": "新兴市场本币债ETF",
     "DRAM": "内存半导体ETF", "NASA": "太空创新ETF",
@@ -348,7 +353,7 @@ TICKER_TO_CN = {
     "2252": "微创医疗机器人", "1384": "滴普科技",
     "1141": "民银资本控股", "0254": "国家联合资源",
     "1087": "InvesTech控股", "1780": "荣尊国际控股",
-    "2475": "立讯精密",
+    "2475": "立讯精密", "6162": "天瑞汽车内饰",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -497,6 +502,7 @@ ISIN_TO_HK = {
     "BMG492321127": ("1087", "InvesTech控股"),  # InvesTech Holdings (network integration)
     "KYG0700L1095": ("1780", "荣尊国际控股"),  # Rongzun Intl (前 B & D Strategic, 2024-04 改名)
     "CNE100007QQ2": ("2475", "立讯精密"),  # Luxshare Precision H (2026-07-09 IPO, 年内最大)
+    "KYG844001035": ("6162", "天瑞汽车内饰"),  # China Tianrui Automotive Interiors (西安汽车内外饰件)
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。

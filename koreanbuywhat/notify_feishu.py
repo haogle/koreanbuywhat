@@ -121,6 +121,7 @@ def build_rows(df, country: str):
         )
         return {
             "ticker": ticker, "cn_name": cn_name, "name": r["KOR_SECN_NM"],
+            "isin": r.get("ISIN", ""),
             "buy": r["buy"], "sell": r["sell"], "net": r["net"],
         }
 
@@ -129,16 +130,69 @@ def build_rows(df, country: str):
     return top_buys, top_sells
 
 
+def find_unrecognized(rows: list, label: str) -> list:
+    """
+    检出榜单里"未识别"的标的（缺中文名 = 映射表还没收录）。
+    返回 [{market, ticker, name, isin, net}, ...]
+    """
+    out = []
+    for r in rows:
+        # cn_name 为空 = format_display 没命中映射（HK 占位符 / US 仅英文名）
+        if not (r.get("cn_name") or "").strip():
+            out.append({
+                "market": label,
+                "ticker": r.get("ticker", ""),
+                "name": r.get("name", ""),
+                "isin": r.get("isin", ""),
+                "net": r.get("net", 0),
+            })
+    return out
+
+
+def send_unrecognized_alert(items: list, period_str: str):
+    """把未识别标的汇总成一条飞书告警，方便补映射后重跑。"""
+    if not items:
+        return
+    lines = [
+        "⚠️ 未识别标的告警",
+        f"结算周期: {period_str}",
+        "",
+        "以下标的未命中映射表（stock_names.py），海报中显示为占位符/英文名。",
+        "补充映射后可重跑本周：",
+        "",
+    ]
+    for it in items:
+        amt = it["net"] / 1e6
+        lines.append(
+            f"[{it['market']}] {it['ticker']}  {it['name']}"
+            f"  (ISIN {it['isin']}, 净 {amt:+.1f}M)"
+        )
+    lines.append("")
+    lines.append("→ 告诉 Claude 补上映射，然后手动重跑该周即可。")
+    send_text("\n".join(lines))
+    print(f"  ⚠️ 已发送未识别告警: {len(items)} 个标的", flush=True)
+
+
 def push_market(country: str, label: str, start: str, end: str, period_str: str):
-    """单个市场：抓数据 → 渲染海报 → 推文字 + 图片。"""
+    """单个市场：抓数据 → 渲染海报 → 推文字 + 图片。返回未识别标的列表。"""
     print(f"[{label}] 获取数据...", flush=True)
     df = fetch_week(country, start, end)
     if df.empty:
         print(f"  {label}: 暂无数据，跳过\n")
-        return
+        return []
 
     weekly_net = df["net"].sum()
     top_buys, top_sells = build_rows(df, country)
+
+    # 检测未识别标的（buy + sell 榜单去重）
+    unrecognized = find_unrecognized(top_buys + top_sells, label)
+    seen, deduped = set(), []
+    for it in unrecognized:
+        key = it["isin"] or it["ticker"]
+        if key not in seen:
+            seen.add(key)
+            deduped.append(it)
+    unrecognized = deduped
 
     # ── 海报 ──
     if not os.environ.get("SKIP_IMAGE"):
@@ -163,7 +217,11 @@ def push_market(country: str, label: str, start: str, end: str, period_str: str)
         print(f"  推送社交文案到飞书...", flush=True)
         send_text(text)
 
+    if unrecognized:
+        print(f"  ⚠️ {label} 发现 {len(unrecognized)} 个未识别标的", flush=True)
+
     print()
+    return unrecognized
 
 
 def generate_and_send(start: str = None, end: str = None):
@@ -176,8 +234,13 @@ def generate_and_send(start: str = None, end: str = None):
 
     print(f"结算周期: {period_str}\n")
 
+    all_unrecognized = []
     for country, label in MARKETS:
-        push_market(country, label, start, end, period_str)
+        all_unrecognized += push_market(country, label, start, end, period_str)
+
+    # 全部市场跑完后，如有未识别标的，汇总成一条飞书告警
+    if all_unrecognized and not os.environ.get("SKIP_ALERT"):
+        send_unrecognized_alert(all_unrecognized, period_str)
 
 
 if __name__ == "__main__":
