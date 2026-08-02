@@ -9,6 +9,15 @@ on:
   schedule:
     - cron: "0 15 * * 6"
   workflow_dispatch:        # 也支持在 GitHub Actions 页面手动触发
+    inputs:
+      start:
+        description: "开始日期 YYYYMMDD（留空 = 上一交易周）"
+        required: false
+        default: ""
+      end:
+        description: "结束日期 YYYYMMDD（留空 = 上一交易周）"
+        required: false
+        default: ""
 
 # 避免同一时段并发重复运行
 concurrency:
@@ -43,4 +52,14 @@ jobs:
           FEISHU_WEBHOOK: ${{ secrets.FEISHU_WEBHOOK }}
           FEISHU_APP_ID: ${{ secrets.FEISHU_APP_ID }}
           FEISHU_APP_SECRET: ${{ secrets.FEISHU_APP_SECRET }}
-        run: python notify_feishu.py
+          START: ${{ inputs.start }}
+          END: ${{ inputs.end }}
+        # 手动触发时若填了 start/end 就跑指定周（用于补映射后重跑），
+        # 否则（定时触发 / 留空）跑上一交易周。
+        run: |
+          if [ -n "$START" ] && [ -n "$END" ]; then
+            echo "重跑指定周: $START ~ $END"
+            python notify_feishu.py "$START" "$END"
+          else
+            python notify_feishu.py
+          fi

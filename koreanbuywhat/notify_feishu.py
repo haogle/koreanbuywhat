@@ -149,16 +149,16 @@ def find_unrecognized(rows: list, label: str) -> list:
     return out
 
 
-def send_unrecognized_alert(items: list, period_str: str):
-    """把未识别标的汇总成一条飞书告警，方便补映射后重跑。"""
+def send_unrecognized_alert(items: list, period_str: str,
+                            start: str = "", end: str = ""):
+    """把未识别标的汇总成一条飞书告警，附带补映射 + 重跑的操作指引。"""
     if not items:
         return
     lines = [
         "⚠️ 未识别标的告警",
         f"结算周期: {period_str}",
         "",
-        "以下标的未命中映射表（stock_names.py），海报中显示为占位符/英文名。",
-        "补充映射后可重跑本周：",
+        "以下标的未命中映射表，海报中显示为占位符/英文名：",
         "",
     ]
     for it in items:
@@ -167,8 +167,17 @@ def send_unrecognized_alert(items: list, period_str: str):
             f"[{it['market']}] {it['ticker']}  {it['name']}"
             f"  (ISIN {it['isin']}, 净 {amt:+.1f}M)"
         )
-    lines.append("")
-    lines.append("→ 告诉 Claude 补上映射，然后手动重跑该周即可。")
+    lines += [
+        "",
+        "── 怎么修 ──",
+        "1) 把这条消息发给 Claude，让它查清公司身份并补进 stock_names.py",
+        "2) 补完后重跑本周（二选一）：",
+        f"   · GitHub → Actions → Weekly Feishu Report → Run workflow",
+        f"     start 填 {start or 'YYYYMMDD'} , end 填 {end or 'YYYYMMDD'}",
+        f"   · 本地: ./rerun.sh {start} {end}",
+        "",
+        "注：直接重跑而不补映射不会有变化 —— 缺的是映射，不是数据。",
+    ]
     send_text("\n".join(lines))
     print(f"  ⚠️ 已发送未识别告警: {len(items)} 个标的", flush=True)
 
@@ -240,7 +249,7 @@ def generate_and_send(start: str = None, end: str = None):
 
     # 全部市场跑完后，如有未识别标的，汇总成一条飞书告警
     if all_unrecognized and not os.environ.get("SKIP_ALERT"):
-        send_unrecognized_alert(all_unrecognized, period_str)
+        send_unrecognized_alert(all_unrecognized, period_str, start, end)
 
 
 if __name__ == "__main__":
