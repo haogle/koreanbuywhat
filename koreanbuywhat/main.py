@@ -3,6 +3,7 @@
 美股 + 港股 | 数据来源: 한국예탁결제원 (KSD) SEIBro
 """
 
+import time
 import requests
 import pandas as pd
 import xml.etree.ElementTree as ET
@@ -74,24 +75,55 @@ def parse_xml(text):
     return rows
 
 
-def fetch_day(date, country, session):
+def fetch_day(date, country, session, retries=4, backoff=2.0):
+    """
+    抓单日 settlement 数据。SEIBro 偶发瞬时断连
+    (RemoteDisconnected / ProxyError / ConnectionError)，指数退避重试。
+    """
     xml = build_xml(date, country)
-    resp = session.post(ENDPOINT, headers=HEADERS,
-                        data=xml.encode("utf-8"), timeout=30)
-    resp.raise_for_status()
-    rows = parse_xml(resp.text)
-    return pd.DataFrame(rows) if rows else pd.DataFrame()
+    last_exc = None
+    for attempt in range(retries):
+        try:
+            resp = session.post(ENDPOINT, headers=HEADERS,
+                                data=xml.encode("utf-8"), timeout=30)
+            resp.raise_for_status()
+            rows = parse_xml(resp.text)
+            return pd.DataFrame(rows) if rows else pd.DataFrame()
+        except (requests.exceptions.ConnectionError,
+                requests.exceptions.ProxyError,
+                requests.exceptions.Timeout,
+                requests.exceptions.ChunkedEncodingError) as exc:
+            last_exc = exc
+            if attempt < retries - 1:
+                time.sleep(backoff ** attempt)  # 1s, 2s, 4s
+    raise last_exc
 
 
 def fetch_week(country, start, end):
-    """拉取一周每天 settlement 数据，按股票汇总"""
+    """拉取一周每天 settlement 数据，按股票汇总。
+
+    单日重试后仍失败 → 跳过该日（用其余交易日），避免整周崩溃；
+    仅当全周所有交易日都失败时才抛错。
+    """
     dates = workdays(start, end)
     session = requests.Session()
     dfs = []
+    failed = []
     for d in dates:
-        df = fetch_day(d, country, session)
-        if not df.empty:
-            dfs.append(df)
+        try:
+            df = fetch_day(d, country, session)
+            if not df.empty:
+                dfs.append(df)
+        except Exception as exc:
+            failed.append(d)
+            print(f"    [warn] {country} {d} 抓取失败，已跳过: {type(exc).__name__}",
+                  flush=True)
+
+    # 全部交易日都失败 → 抛错（真实网络故障）
+    if failed and len(failed) == len(dates):
+        raise RuntimeError(
+            f"{country} 全周 ({start}~{end}) 所有交易日抓取失败: {failed}"
+        )
     if not dfs:
         return pd.DataFrame()
 

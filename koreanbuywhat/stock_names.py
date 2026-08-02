@@ -81,6 +81,7 @@ NAME_TO_TICKER = {
     "DIREXION DAILY SEMICONDUCTORS BULL": "SOXL",
     "DIREXION DAILY SEMICOND": "SOXL",
     "DIREXION SHARES ETF TRUST DAILY SEMICONDUCTOR BEAR": "SOXS",
+    "DIREX DAI SEMI BE": "SOXS", "DIREXION DAILY SEMICONDUCTOR BEAR": "SOXS",
     "DIREXION DAILY TSLA BULL": "TSLL",
     "DIREXION SHARES ETF TRUST DAILY MSCI SOUTH KOREA BULL": "KORU",
     "DIREXION DAILY 20 YEAR": "TMF",
@@ -168,6 +169,8 @@ NAME_TO_TICKER = {
     "B AND D STRATEGIC": "1780", "RONGZUN INTERNATIONAL": "1780", "RONGZUN": "1780",
     "LUXSHARE": "2475", "LUXSHARE PRECISION": "2475",
     "CHINA TIANRUI AUTOMOTIVE": "6162", "TIANRUI AUTOMOTIVE": "6162",
+    "INNOLIGHT": "3308", "ZJ INNOLIGHT": "3308", "ZHONGJI INNOLIGHT": "3308",
+    "SERES": "9927",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -354,6 +357,7 @@ TICKER_TO_CN = {
     "1141": "民银资本控股", "0254": "国家联合资源",
     "1087": "InvesTech控股", "1780": "荣尊国际控股",
     "2475": "立讯精密", "6162": "天瑞汽车内饰",
+    "3308": "中际旭创", "9927": "赛力斯",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -503,6 +507,8 @@ ISIN_TO_HK = {
     "KYG0700L1095": ("1780", "荣尊国际控股"),  # Rongzun Intl (前 B & D Strategic, 2024-04 改名)
     "CNE100007QQ2": ("2475", "立讯精密"),  # Luxshare Precision H (2026-07-09 IPO, 年内最大)
     "KYG844001035": ("6162", "天瑞汽车内饰"),  # China Tianrui Automotive Interiors (西安汽车内外饰件)
+    "CNE100007SR6": ("3308", "中际旭创"),  # ZJ Innolight H (光模块龙头, 2026-07-30 IPO)
+    "CNE1000076H5": ("9927", "赛力斯"),   # Seres Group H (问界母公司, 新能源车 A+H)
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。
