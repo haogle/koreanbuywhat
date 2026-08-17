@@ -172,6 +172,8 @@ NAME_TO_TICKER = {
     "INNOLIGHT": "3308", "ZJ INNOLIGHT": "3308", "ZHONGJI INNOLIGHT": "3308",
     "SERES": "9927",
     "EASYHOLD": "1703", "PALACE BANQUET": "1703", "WELIFE TECHNOLOGY": "1703",
+    "CHINA XLX FERTILISER": "1866", "XLX FERTILISER": "1866",
+    "INSILICO MEDICINE": "3696", "INSILICO": "3696",
     # 半导体 / 硬件
     "SEMICONDUCTOR MANUFACTURING INTL": "0981", "HUA HONG SEMICONDUCTOR": "1347",
     "SUNNY OPTICAL": "2382", "FOXCONN INTERCONNECT": "6088",
@@ -359,6 +361,7 @@ TICKER_TO_CN = {
     "1087": "InvesTech控股", "1780": "荣尊国际控股",
     "2475": "立讯精密", "6162": "天瑞汽车内饰",
     "3308": "中际旭创", "9927": "赛力斯", "1703": "谊和股份",
+    "1866": "心连心化肥", "3696": "英矽智能",
     # 半导体 / 硬件
     "0981": "中芯国际", "1347": "华虹半导体",
     "2382": "舜宇光学", "6088": "鸿腾精密",
@@ -513,6 +516,8 @@ ISIN_TO_HK = {
     "KYG6875A1177": ("1703", "谊和股份"),  # Easyhold Group (2026-04-10 由 维力生活科技 改名)
     "KYG6875A1250": ("1703", "谊和股份"),  # 同上，SEIBro 另一 ISIN 变体
     "KYG6875A1094": ("1703", "谊和股份"),  # 同上，旧 Palace Banquet 时期 ISIN
+    "SG1V07936171": ("1866", "心连心化肥"),  # China XLX Fertiliser (新加坡注册, 河南新乡尿素/复合肥)
+    "KYG4790P1037": ("3696", "英矽智能"),   # InSilico Medicine (AI 制药, 2025-12-30 IPO)
 
     # 注：HK0000xxxxx 这类 ISIN 不在此直接映射，让它走名称关键词匹配 —
     # 大多数 HK0000xxx 条目的 SEIBro KOR_SECN_NM 都是可识别的英文全名。
