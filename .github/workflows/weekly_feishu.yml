@@ -28,6 +28,8 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: write           # keepalive 步骤需要推送权限
     env:
       TZ: Asia/Tokyo          # 让 Python datetime.now() 对齐日本时间
     defaults:
@@ -37,6 +39,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           lfs: true
+          fetch-depth: 0          # keepalive 需要读最后一次 commit 时间
 
       - uses: actions/setup-python@v6
         with:
@@ -63,3 +66,26 @@ jobs:
           else
             python notify_feishu.py
           fi
+
+      # ── Keepalive ────────────────────────────────────────────────────
+      # GitHub 会在仓库「60 天无提交」后自动停用定时任务，
+      # 而 workflow 跑成功本身不算活动 —— 只有 commit 才算。
+      # 这里在距上次提交 ≥45 天时自动产生一次极小的提交，重置计时器。
+      - name: Keepalive (prevent 60-day schedule auto-disable)
+        if: github.event_name == 'schedule'
+        working-directory: .
+        run: |
+          LAST=$(git log -1 --format=%ct)
+          DAYS=$(( ( $(date +%s) - LAST ) / 86400 ))
+          echo "距上次提交 ${DAYS} 天"
+          if [ "$DAYS" -lt 45 ]; then
+            echo "未到 45 天阈值，跳过 keepalive"
+            exit 0
+          fi
+          mkdir -p .github
+          date -u +"last scheduled run: %Y-%m-%dT%H:%M:%SZ" > .github/last-run.txt
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .github/last-run.txt
+          git commit -m "chore: keepalive — reset 60-day schedule timer"
+          git push
